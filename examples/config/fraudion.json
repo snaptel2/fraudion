@@ -4,7 +4,7 @@
   // Configuration File
 
   "general": {
-    "monitored_software": "*ast_el_2.3.0", // ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
+    "monitored_software": "*ast_el_2.3", // ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
     "cdrs_source": "*db_mysql", // db_mysql: Database MySQL. TODO (v2) json: Json, csv: CSVs
     "default_trigger_check_period": "10s", // Can be overriden in Trigger configuration
     "default_action_chain_sleep_period": "30m", // Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
