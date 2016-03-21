@@ -1,0 +1,83 @@
+{
+
+  // Simple Fraud Detection & Notification System for Asterisk/FreeSwitch
+  // Configuration File
+
+  "general": {
+    "pbx_software": "*ast_el_2.3.0", // ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: Elastix <version>, fs_<version>: Freeswitch <version>
+    "cdrs_source": "*db_mysql", // db_mysql: Database MySQL. TODO (v2) json: Json, csv: CSVs
+    "default_trigger_check_period": "5m", // Can be overriden in Trigger configuration
+    "default_action_chain_sleep_period": "30m", // Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
+    "default_action_chain_run_count": "3" // Count for the Reprocessing of the Action Chains
+  },
+
+  "triggers": {
+    "simultaneous_calls_threshold": {
+      "check_period": "6m", // [Optional] Defaults to what's in "general" section
+      "max_call_threshold": 5 // "this" many simultaneous calls calls when cheked will trigger!
+    },
+    "dangerous_destinations": {
+      "check_period": "6m", // [Optional] Defaults to what's in "general" section
+      "prefix_list": ["351", "34"],
+      "hit_threshold": 5 // "this" number of calls in "check_period" will trigger!
+    },
+    "expected_destinations": {
+      "prefix_list": ["244"],
+      "check_period": "6m", // [Optional] Defaults to what's in "general" section
+      "hit_threshold": 5 // "this" number of calls in "check_period" will trigger!
+    },
+    "small_duration_calls": {
+      "check_period": "6m", // [Optional] Defaults to what's in "general" section
+      "duration_threshold": "5s", // "this" number of calls calls in "check_period" will trigger!
+      "hit_threshold": 5 // "this" number of calls in "check_period" will trigger!
+    }
+  },
+
+  "actions": {
+    "email": {
+      "message": "email_message"
+    },
+    "http_sms": {
+      "url": "http_sms_url",
+      "method": "http_sms_method",
+      "message": "http_sms_message"
+    },
+    "call": {
+      "message": "call_message",
+    },
+    "http_post": {
+      "url": "http_post_url",
+      "parameters": {
+        "http_post_parameters_1_k": "http_post_parameters_1_v",
+        "http_post_parameters_2_k": "http_post_parameters_2_v"
+        // etc...
+      }
+    },
+    "local_commands": { // You can define your own command actions by giving them a name and a string that will be executed on the system! "*local_command x N"
+      "local_commands_1_k": "asterisk -r 'core reload'",
+      "local_commands_2_k": "service asterisk stop"
+      // etc...
+    }
+  },
+
+  "action_chains": {
+    //"chain_name": ["tewtwe", "etwete"]
+    "action_chains_1": [
+      {
+        "action_name": "http_post",
+        "contact_names": ["contact_name", "contact_name2"] // TODO Optional Field? Because this does not apply to all actions!
+      }
+    ]
+  },
+
+  "contacts": {
+    "contact_name": {
+      "for_actions": ["action_name", "action_name"],
+      "phone_number": "",
+      "email": "",
+      "url": ""
+    }
+    // etc...
+  }
+
+}
