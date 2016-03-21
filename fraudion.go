@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 	"reflect"
-	//"time"
+	"time"
 
 	"encoding/json"
 	//"path/filepath"
@@ -28,12 +28,8 @@ var (
 )
 
 // Config Data Holders
-type Test struct {
-	TestArrBuh map[string]string
-}
-
 type configJsonGeneral struct {
-	Pbx_software                      string
+	Monitored_software                string
 	Cdrs_source                       string
 	Default_trigger_check_period      string
 	Default_action_chain_sleep_period string
@@ -41,27 +37,24 @@ type configJsonGeneral struct {
 }
 
 type configJsonTriggers struct {
-	Simultaneous_calls_threshold map[string]interface{}
-	Dangerous_destinations       map[string]interface{}
-	Expected_destinations        map[string]interface{}
-	Small_duration_calls         map[string]interface{}
+	Simultaneous_calls     map[string]interface{}
+	Dangerous_destinations map[string]interface{}
+	Expected_destinations  map[string]interface{}
+	Small_duration_calls   map[string]interface{}
 }
 
-type configActionLocalEmail struct {
-	Message string
-}
-type configActionHTTPSMS struct {
-	Url     string
-	Method  string
-	Message string
-}
-type configActionCall struct {
-	Message string
+type configJsonActionEmail struct {
+	Default_message string
 }
 
-type configActionHTTPPost struct {
-	Url        string
-	Parameters map[string]string
+type configJsonActionCall struct {
+	Default_message string
+}
+
+type configJsonActionHttp struct {
+	Default_url        string
+	Default_method     string
+	Default_parameters map[string]string
 }
 
 type configActionLocalCommands struct {
@@ -69,29 +62,21 @@ type configActionLocalCommands struct {
 }
 
 type configJsonActions struct {
-	Email          configActionLocalEmail
-	Http_sms       configActionHTTPSMS
-	Call           configActionCall
-	Http_post      configActionHTTPPost
+	Email          configJsonActionEmail
+	Call           configJsonActionCall
+	Http           configJsonActionHttp
 	Local_commands map[string]string
 }
 
 type configActionChainAction struct {
-	Action_name   string
-	Contact_names []string
+	Action   string
+	Contacts []string
+	Command  string
 }
 
 type configJsonActionChains map[string][]configActionChainAction
 
 type configJsonContacts map[string]map[string]interface{}
-
-/*struct configJsonTriggers {
-	var Test string
-
-	"simultaneous_calls_threshold": {},
-	"dangerous_destinations": {},
-	"expected_destinations": {}
-}*/
 
 // Starts here!
 func main() {
@@ -234,10 +219,51 @@ func main() {
 	fmt.Println()
 
 	// TODO Parse configs for acceptable values.
+	simultaneous_calls_check_period, found := cfgTriggers.Simultaneous_calls["check_period"].(string)
+	if found == false {
+		// TODO Confirm that cfgGeneral.Default_trigger_check_period has some value, because this var needs some.
+		simultaneous_calls_check_period = cfgGeneral.Default_trigger_check_period
+	}
+
+	dangerous_destinations_check_period, found := cfgTriggers.Dangerous_destinations["check_period"].(string)
+	if found == false {
+		// TODO Confirm that cfgGeneral.Default_trigger_check_period has some value, because this var needs some.
+		dangerous_destinations_check_period = cfgGeneral.Default_trigger_check_period
+	}
+
+	fmt.Println("Debug:", simultaneous_calls_check_period)
+	fmt.Println("Debug:", dangerous_destinations_check_period)
 
 	// Start Running!
-	// ...
+	simultaneous_calls_check_period_ticker_duration, err := time.ParseDuration(simultaneous_calls_check_period)
+	if err != nil {
+		// TODO Log this to Syslog
+		fmt.Println("Could not calculate duration for \"simultaneous_calls_check_period_ticker\". :(")
+		os.Exit(-1)
+	}
+	simultaneous_calls_check_period_ticker := time.NewTicker(simultaneous_calls_check_period_ticker_duration)
+	go func() { // TODO Future simultaneous_calls_checker()
+		for t := range simultaneous_calls_check_period_ticker.C {
+			fmt.Println("simultaneous_calls_check_period_ticker tick at", t)
+		}
+	}()
 
-	os.Exit(1)
+	dangerous_destinations_check_period_ticker_duration, err := time.ParseDuration(dangerous_destinations_check_period)
+	if err != nil {
+		// TODO Log this to Syslog
+		fmt.Println("Could not calculate duration for \"dangerous_destinations_check_period_ticker\". :(")
+		os.Exit(-1)
+	}
+	dangerous_destinations_check_period_ticker := time.NewTicker(dangerous_destinations_check_period_ticker_duration)
+	go func() { // TODO Future dangerous_destinations_checker()
+		for t := range dangerous_destinations_check_period_ticker.C {
+			fmt.Println("dangerous_destinations_check_period_ticker tick at", t)
+		}
+	}()
+
+	for {
+	}
+
+	//os.Exit(1)
 
 }

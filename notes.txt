@@ -5,16 +5,6 @@ Notes:
  - Exit code via https://golang.org/pkg/os
  - Working with time at https://golang.org/pkg/time/, specially ParseDuration(s string) (Duration, error)
 
-How CGRates does Config Json Parsing:
- - main() at https://github.com/cgrates/cgrates/blob/fd5ed5b4b2d47f751395883c3d4cd011ff6a87e2/cmd/cgr-engine/cgr-engine.go
- - NewCGRConfigFromFolder(cfgDir string) (*CGRConfig, error) at https://github.com/cgrates/cgrates/blob/9fbd39ae6d65cec429ce7e3bf5e6812b35881f6b/config/config.go
- - NewCgrJsonCfgFromFile(fpath string) (*CgrJsonCfg, error) at https://github.com/cgrates/cgrates/blob/fd5ed5b4b2d47f751395883c3d4cd011ff6a87e2/config/config_json.go
- - NewCgrJsonCfgFromReader(r io.Reader) (*CgrJsonCfg, error) (same location)
- - type CgrJsonCfg map[string]*json.RawMessage (holder) (same location)
- - struct Data Holders at https://github.com/cgrates/cgrates/blob/7373a4fdf4e12ad6d5c6283d258ecdf7dc183026/config/libconfig_json.go
- - (from NewCGRConfigFromFolder) checkConfigSanity at https://github.com/cgrates/cgrates/blob/9fbd39ae6d65cec429ce7e3bf5e6812b35881f6b/config/config.go
-
-
 
  /*"chain_name": [
    {
