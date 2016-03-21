@@ -29,3 +29,31 @@ Notes:
 
  "run_count": 1, // TODO > 0, if not we'll assume 1
  "sleep_period": "30m", // TODO > 1m, if not we'll assume 1 day
+\
+
+//if *version {
+//
+//	return
+//}
+
+// Don't forget "pid" file
+
+// Parse config file
+/*fi, err := os.Stat(cfgDir)
+if err != nil {
+  if strings.HasSuffix(err.Error(), "no such file or directory") {
+    return cfg, nil
+  }
+  return nil, err
+} else if !fi.IsDir() && cfgDir != utils.CONFIG_DIR { // If config dir defined, needs to exist, not checking for default
+  return nil, fmt.Errorf("Path: %s not a directory.", cfgDir)
+}
+if fi.IsDir() {
+
+err = filepath.Walk(cfgDir, func(path string, info os.FileInfo, err error) error {
+      if !info.IsDir() {
+        return nil
+      }
+      cfgFiles, err := filepath.Glob(filepath.Join(path, "*.json"))
+
+*/
