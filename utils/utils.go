@@ -9,3 +9,13 @@ func StringInStringsSlice(str string, list []string) bool {
 	}
 	return false
 }
+
+// StringKeyInMap ...
+func StringKeyInMap(theKey string, theMap map[string]interface{}) bool {
+	for key := range theMap {
+		if key == theKey {
+			return true
+		}
+	}
+	return false
+}

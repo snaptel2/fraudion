@@ -6,31 +6,36 @@
   "general": {
     "monitored_software": "*ast_el_2.3", // ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
     "cdrs_source": "*db_mysql", // db_mysql: Database MySQL. TODO (v2) json: Json, csv: CSVs
-    "default_trigger_check_period": "10s", // Can be overriden in Trigger configuration
-    "default_action_chain_sleep_period": "30m", // Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
+    "default_trigger_check_period": "10m", // Can be overriden in Trigger configuration
+    "default_action_chain_sleep_period": "30s", // Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
     "default_action_chain_run_count": 3, // Count for the Reprocessing of the Action Chains
-    "default_minimum_number_length": 5, // Only consider CDRs with destination number with len > this number (this is to exclude internal calls that normally have 3 to 5 digits destination numbers)
+    "default_minimum_destination_number_length": 5, // Only consider CDRs with destination number with len > this number (this is to exclude internal calls that normally have 3 to 5 digits destination numbers)
   },
 
   "triggers": {
     "simultaneous_calls": {
-      "check_period": "5s", // [Optional] Defaults to what's in "general" section
-      "max_call_threshold": 5 // "this" many simultaneous calls calls when cheked will trigger!
+      "enabled": true, // [Optional] If you omit this we consider it enabled to disable either omit the key from Triggers section or add enabled: false
+      "check_period": "5m", // [Optional] Defaults to what's in "general" section
+      "max_call_threshold": 5, // "this" many simultaneous calls calls when cheked will trigger!
+      //"minimum_number_length": 5
     },
     "dangerous_destinations": {
       //"check_period": "6m", // [Optional] Defaults to what's in "general" section
       "prefix_list": ["351", "34"], // We'll search for 00/+ before all prefixes also
-      "hit_threshold": 5 // "this" number of calls in "check_period" will trigger!
+      "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
+      "minimum_number_length": 5
     },
     "expected_destinations": {
       "check_period": "6m", // [Optional] Defaults to what's in "general" section
       "prefix_list": ["244"],
-      "hit_threshold": 5 // "this" number of calls in "check_period" will trigger!
+      "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
+      "minimum_number_length": 5
     },
     "small_duration_calls": {
       "check_period": "6m", // [Optional] Defaults to what's in "general" section
       "duration_threshold": "5s", // "this" number of calls calls in "check_period" will trigger!
-      "hit_threshold": 5 // "this" number of calls in "check_period" will trigger!
+      "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
+      "minimum_number_length": 5
     }
   },
 

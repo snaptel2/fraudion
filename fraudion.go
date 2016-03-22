@@ -48,7 +48,7 @@ func main() {
 	config.CheckJSONSanityAndLoadConfigs(JSONConfigs)
 
 	fmt.Println()
-	fmt.Println(JSONConfigs)
+	fmt.Println(config)
 
 	/*fmt.Println("sadjaçidjfsdf", cfgGeneral.Monitored_software)
 	fmt.Println("sadjaçidjfsdf", supported_software)

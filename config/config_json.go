@@ -36,10 +36,10 @@ type JSONGeneral struct {
 
 // JSONTriggers ...
 type JSONTriggers struct {
-	Simultaneous_calls     map[string]interface{}
-	Dangerous_destinations map[string]interface{}
-	Expected_destinations  map[string]interface{}
-	Small_duration_calls   map[string]interface{}
+	Simultaneous_calls     interface{} // map[string]interface{}
+	Dangerous_destinations interface{}
+	Expected_destinations  interface{}
+	Small_duration_calls   interface{}
 }
 
 // JSONActions ...
