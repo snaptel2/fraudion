@@ -17,21 +17,24 @@
       "enabled": true, // [Optional] If you omit this we consider it enabled to disable either omit the key from Triggers section or add enabled: false
       "check_period": "5m", // [Optional] Defaults to what's in "general" section
       "max_call_threshold": 5, // "this" many simultaneous calls calls when cheked will trigger!
-      //"minimum_number_length": 5
+      "minimum_number_length": 5
     },
     "dangerous_destinations": {
-      //"check_period": "6m", // [Optional] Defaults to what's in "general" section
+      "enabled": true,
+      "check_period": "6m", // [Optional] Defaults to what's in "general" section
       "prefix_list": ["351", "34"], // We'll search for 00/+ before all prefixes also
       "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
       "minimum_number_length": 5
     },
     "expected_destinations": {
+      "enabled": true,
       "check_period": "6m", // [Optional] Defaults to what's in "general" section
       "prefix_list": ["244"],
       "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
       "minimum_number_length": 5
     },
     "small_duration_calls": {
+      "enabled": true,
       "check_period": "6m", // [Optional] Defaults to what's in "general" section
       "duration_threshold": "5s", // "this" number of calls calls in "check_period" will trigger!
       "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
