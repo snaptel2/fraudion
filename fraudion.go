@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	//"os"
+	"os"
 	//"reflect"
 	//"time"
 
@@ -42,7 +42,11 @@ func main() {
 
 	// TODO Try to get configs from JSON file.
 	JSONConfigs := new(config.FraudionJSONConfig)
-	JSONConfigs.LoadConfigFromJSONFile(*cliConfigDir)
+	err := JSONConfigs.LoadConfigFromJSONFile(*cliConfigDir)
+	if err != nil {
+		fmt.Println(err.Error())
+		os.Exit(-1)
+	}
 
 	config := new(config.FraudionConfig)
 	config.CheckJSONSanityAndLoadConfigs(JSONConfigs)
