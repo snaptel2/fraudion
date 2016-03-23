@@ -44,10 +44,10 @@ type JSONTriggers struct {
 
 // JSONActions ...
 type JSONActions struct {
-	Email          jsonActionEmail
-	Call           jsonActionCall
-	HTTP           jsonActionHTTP
-	Local_commands map[string]string
+	Email          interface{} // jsonActionEmail
+	Call           interface{} // jsonActionCall
+	HTTP           interface{} // jsonActionHTTP
+	Local_commands interface{}
 }
 
 type jsonActionEmail struct {

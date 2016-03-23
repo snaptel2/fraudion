@@ -410,6 +410,158 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 	fmt.Println("******", fraudionConfig.Triggers)
 
 	// Actions Section
+	simCallsActionsJSONConfig, triggerIsPresent := JSONConfigs.Actions.HTTP.(map[string]interface{})
+	fmt.Println("**", simCallsActionsJSONConfig)
+	fmt.Println(reflect.TypeOf(simCallsActionsJSONConfig))
+	fmt.Println(triggerIsPresent)
+	fmt.Println()
+	valueDefaultMessage, hasCorrectType := simCallsActionsJSONConfig["default_parameters"].(map[string]interface{})
+	fmt.Println("**", reflect.ValueOf(simCallsActionsJSONConfig["default_parameters"]).Interface())
+	fmt.Println(valueDefaultMessage)
+	fmt.Println(reflect.TypeOf(valueDefaultMessage))
+	fmt.Println(hasCorrectType)
+	for k, _ := range valueDefaultMessage {
+		fmt.Println(k)
+		valueDefaultMessage, hasCorrectType := valueDefaultMessage[k].(string)
+		if !hasCorrectType {
+			fmt.Println("WHAAAAAAAAAAAAAAAAAAAAAAAT??")
+		}
+		fmt.Println(valueDefaultMessage)
+		fmt.Println(reflect.TypeOf(valueDefaultMessage))
+	}
+	/*valueDefaultMessage2, hasCorrectType := valueDefaultMessage.(map[string]string)
+	fmt.Println("**", reflect.ValueOf(valueDefaultMessage))
+	fmt.Println(valueDefaultMessage2)
+	fmt.Println(reflect.TypeOf(valueDefaultMessage2))
+	fmt.Println(hasCorrectType)*/
+	//buh := map[string]string{
+	//	"rsc": "3711",
+	//	"r":   "2138"
+	//"http_post_parameters_1_k": "http_post_parameters_1_v",
+	//"http_post_parameters_2_k": "http_post_parameters_2_v"
+	//}
+	/*if triggerIsPresent {
+
+	}*/
+	/*
+			valueDefaultMessage, hasCorrectType := simCallsActionsJSONConfig["default_message"].(string)
+			if err := errorOnIncorrectType(hasCorrectType, "Email", "Default Message", "string", reflect.TypeOf(simCallsTriggerJSONConfig["email"])); err != nil {
+				return err
+			}
+			fraudionConfig.Actions.Email.DefaultMessage = valueDefaultMessage
+
+		} else {
+			// TODO:LOG Log this to Syslog
+			fmt.Println("WARNING: \"Expected Destinations\" Trigger config not present, disabling!")
+			fraudionConfig.Triggers.SimultaneousCalls.Enabled = false
+		}
+
+		simCallsActionsJSONConfig, triggerIsPresent = JSONConfigs.Actions.HTTP.(map[string]interface{})
+		if triggerIsPresent {
+
+			valueDefaultMethod, hasCorrectType := simCallsActionsJSONConfig["default_method"].(string)
+			if err := errorOnIncorrectType(hasCorrectType, "HTTP", "Default Method", "string", reflect.TypeOf(simCallsTriggerJSONConfig["email"])); err != nil {
+				return err
+			}
+			fraudionConfig.Actions.HTTP.DefaultMethod = valueDefaultMethod
+
+			valueDefaultURL, hasCorrectType := simCallsActionsJSONConfig["default_url"].(string)
+			if err := errorOnIncorrectType(hasCorrectType, "HTTP", "Default URL", "string", reflect.TypeOf(simCallsTriggerJSONConfig["email"])); err != nil {
+				return err
+			}
+			fraudionConfig.Actions.HTTP.DefaultURL = valueDefaultURL
+
+			valueInterfaceParameters, hasCorrectType := simCallsActionsJSONConfig["default_parameters"].(map[string]interface{})
+			//fmt.Println(simCallsActionsJSONConfig["default_parameters"].(map[string]interface{}))
+			if err := errorOnIncorrectType(hasCorrectType, "HTTP", "Default Parameters", "map[string]interface{}", reflect.TypeOf(simCallsTriggerJSONConfig["email"])); err != nil {
+				return err
+			}
+
+			mapReflectValue := reflect.ValueOf(valueInterfaceParameters)
+			var finalMap map[string]string
+			for i := 0; i < mapReflectValue.Len(); i++ {
+
+				// TODO This is not needed because the previous check catches this, because ints implement no interface? Don't know but it catches when the slice has ints...
+				valueOfMapItem, hasCorrectType := mapReflectValue.In.Interface().(map[string]string)
+				if err := errorOnIncorrectType(hasCorrectType, "HTTP", "default_parameters", "[]", reflect.TypeOf(mapReflectValue.Interface())); err != nil {
+					return err
+				}
+
+				fmt.Println(valueOfMapItem)
+
+				/*isNumericString, errCheckingValue := regexp.MatchString("^[0-9]+$", valueOfSliceItem)
+				if errCheckingValue != nil {
+					fmt.Printf("ERROR: Internal: There seems to be an issue with checking if the \"prefix_list\" string values are numeric\n")
+					return *new([]string), fmt.Errorf("internal: there seems to be an issue with checking if the \"prefix_list\" string values are numeric")
+				}
+				if err := errorOnIncorrectValue(!isNumericString, triggerName, "prefix_list", "Values must be Numeric Strings"); err != nil {
+					return *new([]string), err
+				}*/
+
+	//finalMap = append(finalMap, valueOfMapItem)
+	//}
+
+	//fraudionConfig.Actions.HTTP.DefaultParameters = finalMap
+
+	/*
+		valueDefaultMessage, hasCorrectType := simCallsActionsJSONConfig["default_message"].(string)
+		if err := errorOnIncorrectType(hasCorrectType, "Email", "Default Message", "string", reflect.TypeOf(simCallsTriggerJSONConfig["email"])); err != nil {
+			return err
+		}
+		fraudionConfig.Actions.HTTP.DefaultURL = valueDefaultMessage
+
+		valueDefaultMessage, hasCorrectType := simCallsActionsJSONConfig["default_message"].(string)
+		if err := errorOnIncorrectType(hasCorrectType, "Email", "Default Message", "string", reflect.TypeOf(simCallsTriggerJSONConfig["email"])); err != nil {
+			return err
+		}
+		fraudionConfig.Actions.HTTP.DefaultParameters = valueDefaultMessage
+
+		/*	// ** Search "enabled" Key [Optional], defaults to "enabled"
+			valueEnabled, err := checkJSONSanityOfEnabledConfigs(simCallsTriggerJSONConfig, "Expected Destinations")
+			if err != nil {
+				return err
+			}
+			fraudionConfig.Triggers.ExpectedDestinations.Enabled = valueEnabled
+
+			// ** Search "check_period" Key [Optional], defaults to "fraudionConfig.General.DefaultTriggerCheckPeriod"
+			valueCheckPeriod, err := checkJSONSanityOfCheckPeriodConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Expected Destinations", minimumTriggerCheckPeriodDuration)
+			if err != nil {
+				return err
+			}
+			fraudionConfig.Triggers.ExpectedDestinations.CheckPeriod = valueCheckPeriod
+
+			// ** Search "hit_threshold" Key [Mandatory]
+			valueHitThreshold, err := checkJSONSanityOfHitThresholdConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Expected Destinations")
+			if err != nil {
+				return err
+			}
+			fraudionConfig.Triggers.ExpectedDestinations.HitThreshold = valueHitThreshold
+
+			// ** Search "minimum_number_length" Key [Optional], defaults to "fraudionConfig.General.DefaultMinimumDestinationNumberLength"
+			valueMinimumNumberLength, err := checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Expected Destinations")
+			if err != nil {
+				return err
+			}
+			fraudionConfig.Triggers.ExpectedDestinations.MinimumNumberLength = valueMinimumNumberLength
+
+			// ** Search "prefix_list" Key [Mandatory + not empty]
+			valuePrefixList, err := checkJSONSanityOfPrefixListConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Expected Destinations")
+			if err != nil {
+				return err
+			}
+			fraudionConfig.Triggers.ExpectedDestinations.PrefixList = valuePrefixList
+	*/
+	/*} else {
+		// TODO:LOG Log this to Syslog
+		fmt.Println("WARNING: \"Expected Destinations\" Trigger config not present, disabling!")
+		fraudionConfig.Triggers.SimultaneousCalls.Enabled = false
+	}*/
+
+	//simCallsTriggerJSONConfig, triggerIsPresent = JSONConfigs.Actions.HTTP.(map[string]interface{})
+
+	//simCallsTriggerJSONConfig, triggerIsPresent = JSONConfigs.Actions.Call.(map[string]interface{})
+
+	//simCallsTriggerJSONConfig, triggerIsPresent = JSONConfigs.Actions.Local_commands.(map[string]string)
 
 	// ActionChains Section
 

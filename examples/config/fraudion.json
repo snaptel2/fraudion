@@ -51,7 +51,7 @@
       "default_url": "http_post_url", // Can be overriden in Contacts
       "default_method": "http_sms_method", // *get OR *post Can be overriden in Contacts
       "default_parameters": { // Can be overriden in Contacts
-        "http_post_parameters_1_k": "http_post_parameters_1_v",
+        "http_post_parameters_1_k": "3",
         "http_post_parameters_2_k": "http_post_parameters_2_v"
         // etc...
       }
