@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"reflect"
+	"regexp"
 	"strings"
 	"time"
 
@@ -36,6 +37,7 @@ type General struct {
 	DefaultActionChainSleepPeriod         time.Duration
 	DefaultActionChainRunCount            uint32
 	DefaultMinimumDestinationNumberLength uint32
+	// TODO Default Hit Threshold
 }
 
 // Triggers ...
@@ -167,7 +169,7 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 
 	if errMinimumCheckPeriodDuration != nil {
 		// TODO:LOG Log this to Syslog
-		fmt.Printf("ERROR: Internal: There seems to be an issue with the definition of the constant MINIMUM_TRIGGER_CHECK_PERIOD.")
+		fmt.Printf("ERROR: Internal: There seems to be an issue with the definition of the constant MINIMUM_TRIGGER_CHECK_PERIOD")
 		return fmt.Errorf("internal: there seems to be an issue with the definition of the constant MINIMUM_TRIGGER_CHECK_PERIOD")
 	}
 
@@ -190,7 +192,7 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 
 	if errMaximumChainSleepPeriod != nil {
 		// TODO:LOG Log this to Syslog
-		fmt.Printf("ERROR: Internal: There seems to be an issue with the definition of the constant MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD.")
+		fmt.Printf("ERROR: Internal: There seems to be an issue with the definition of the constant MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD")
 		return fmt.Errorf("internal: there seems to be an issue with the definition of the constant MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD")
 	}
 
@@ -244,7 +246,7 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 		fraudionConfig.Triggers.SimultaneousCalls.Enabled = false
 	}
 
-	fmt.Println("******", fraudionConfig.Triggers.SimultaneousCalls)
+	fmt.Println("******", fraudionConfig.Triggers)
 
 	//  Dangerous Destinations
 	//   Check if Trigger is present!
@@ -265,13 +267,6 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 		}
 		fraudionConfig.Triggers.DangerousDestinations.CheckPeriod = valueCheckPeriod
 
-		// ** Search "minimum_number_length" Key [Optional], defaults to "fraudionConfig.General.DefaultMinimumDestinationNumberLength"
-		valueMinimumNumberLength, err := checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Dangerous Destinations")
-		if err != nil {
-			return err
-		}
-		fraudionConfig.Triggers.DangerousDestinations.MinimumNumberLength = valueMinimumNumberLength
-
 		// ** Search "hit_threshold" Key [Mandatory]
 		valueHitThreshold, err := checkJSONSanityOfHitThresholdConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Dangerous Destinations")
 		if err != nil {
@@ -279,33 +274,27 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 		}
 		fraudionConfig.Triggers.DangerousDestinations.HitThreshold = valueHitThreshold
 
-		// ** Search "prefix_list" Key [Mandatory + not empty]
-		if utils.StringKeyInMap("prefix_list", simCallsTriggerJSONConfig) {
-
-			value, hasCorrectType := simCallsTriggerJSONConfig["prefix_list"].([]string)
-			if err := errorOnIncorrectType(hasCorrectType, "Dangerous Destinations", "prefix_list", "[]string", reflect.TypeOf(simCallsTriggerJSONConfig["prefix_list"])); err != nil {
-				return err
-			}
-
-			// TODO Strings in the slice must be numeric only
-			/*errorMessageSuffix := fmt.Sprintf("Minimum value is \"%s\"", MINIMUM_TRIGGER_CHECK_PERIOD)
-			if err := errorOnIncorrectValue(valueDuration < minimumTriggerCheckPeriodDuration, "Dangerous Destinations", "prefix_list", errorMessageSuffix); err != nil {
-				return err
-			}*/
-
-			fraudionConfig.Triggers.DangerousDestinations.PrefixList = value
-
-		} else {
-			// TODO:LOG Log this to Syslog
-			fmt.Println("WARNING: \"prefix_list\" value for \"Dangerous Destinations\" Trigger not found")
-			return fmt.Errorf("\"prefix_list\" value for \"Dangerous Destinations\" Trigger not found")
+		// ** Search "minimum_number_length" Key [Optional], defaults to "fraudionConfig.General.DefaultMinimumDestinationNumberLength"
+		valueMinimumNumberLength, err := checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Dangerous Destinations")
+		if err != nil {
+			return err
 		}
+		fraudionConfig.Triggers.DangerousDestinations.MinimumNumberLength = valueMinimumNumberLength
+
+		// ** Search "prefix_list" Key [Mandatory + not empty]
+		valuePrefixList, err := checkJSONSanityOfPrefixListConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Dangerous Destinations")
+		if err != nil {
+			return err
+		}
+		fraudionConfig.Triggers.DangerousDestinations.PrefixList = valuePrefixList
 
 	} else {
 		// TODO:LOG Log this to Syslog
 		fmt.Println("WARNING: \"Dangerous Destinations\" Trigger config not present, disabling!")
 		fraudionConfig.Triggers.SimultaneousCalls.Enabled = false
 	}
+
+	fmt.Println("******", fraudionConfig.Triggers)
 
 	//  Expected Destinations
 	//   Check if Trigger is present!
@@ -326,47 +315,34 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 		}
 		fraudionConfig.Triggers.ExpectedDestinations.CheckPeriod = valueCheckPeriod
 
-		// ** Search "minimum_number_length" Key [Optional], defaults to "fraudionConfig.General.DefaultMinimumDestinationNumberLength"
-		valueMinimumNumberLength, err := checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Expected Destinations")
-		if err != nil {
-			return err
-		}
-		fraudionConfig.Triggers.DangerousDestinations.MinimumNumberLength = valueMinimumNumberLength
-
 		// ** Search "hit_threshold" Key [Mandatory]
 		valueHitThreshold, err := checkJSONSanityOfHitThresholdConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Expected Destinations")
 		if err != nil {
 			return err
 		}
-		fraudionConfig.Triggers.DangerousDestinations.HitThreshold = valueHitThreshold
+		fraudionConfig.Triggers.ExpectedDestinations.HitThreshold = valueHitThreshold
+
+		// ** Search "minimum_number_length" Key [Optional], defaults to "fraudionConfig.General.DefaultMinimumDestinationNumberLength"
+		valueMinimumNumberLength, err := checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Expected Destinations")
+		if err != nil {
+			return err
+		}
+		fraudionConfig.Triggers.ExpectedDestinations.MinimumNumberLength = valueMinimumNumberLength
 
 		// ** Search "prefix_list" Key [Mandatory + not empty]
-		if utils.StringKeyInMap("prefix_list", simCallsTriggerJSONConfig) {
-
-			value, hasCorrectType := simCallsTriggerJSONConfig["prefix_list"].([]string)
-			if err := errorOnIncorrectType(hasCorrectType, "Expected Destinations", "prefix_list", "[]string", reflect.TypeOf(simCallsTriggerJSONConfig["prefix_list"])); err != nil {
-				return err
-			}
-
-			// TODO Strings in the slice must be numeric only
-			/*errorMessageSuffix := fmt.Sprintf("Minimum value is \"%s\"", MINIMUM_TRIGGER_CHECK_PERIOD)
-			if err := errorOnIncorrectValue(valueDuration < minimumTriggerCheckPeriodDuration, "Dangerous Destinations", "prefix_list", errorMessageSuffix); err != nil {
-				return err
-			}*/
-
-			fraudionConfig.Triggers.DangerousDestinations.PrefixList = value
-
-		} else {
-			// TODO:LOG Log this to Syslog
-			fmt.Println("WARNING: \"prefix_list\" value for \"Expected Destinations\" Trigger not found")
-			return fmt.Errorf("\"prefix_list\" value for \"Expected Destinations\" Trigger not found")
+		valuePrefixList, err := checkJSONSanityOfPrefixListConfigs(fraudionConfig, simCallsTriggerJSONConfig, "Expected Destinations")
+		if err != nil {
+			return err
 		}
+		fraudionConfig.Triggers.ExpectedDestinations.PrefixList = valuePrefixList
 
 	} else {
 		// TODO:LOG Log this to Syslog
 		fmt.Println("WARNING: \"Expected Destinations\" Trigger config not present, disabling!")
 		fraudionConfig.Triggers.SimultaneousCalls.Enabled = false
 	}
+
+	fmt.Println("******", fraudionConfig.Triggers)
 
 	//  Small Duration calls
 	//   Check if Trigger is present!
@@ -401,13 +377,37 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 		}
 		fraudionConfig.Triggers.SmallDurationCalls.MinimumNumberLength = valueMinimumNumberLength
 
-		// TODO "duration_threshold": "5s"
+		// ** Search "duration_threshold" Key [Mandatory]
+		if utils.StringKeyInMap("duration_threshold", simCallsTriggerJSONConfig) {
+
+			valueDurationString, hasCorrectType := simCallsTriggerJSONConfig["duration_threshold"].(string)
+			if err := errorOnIncorrectType(hasCorrectType, "Small Duration Calls", "duration_threshold", "time.Duration", reflect.TypeOf(simCallsTriggerJSONConfig["duration_threshold"])); err != nil {
+				return err
+			}
+
+			valueDuration, errDuration := time.ParseDuration(valueDurationString)
+			if err := errorOnIncorrectValue(errDuration != nil, "Small Duration Calls", "duration_threshold", "Must be a valid duration"); err != nil {
+				return err
+			}
+
+			fraudionConfig.Triggers.SmallDurationCalls.DurationThreshold = valueDuration
+
+		} else {
+
+			// TODO:LOG Log this to Syslog
+			fmt.Printf("ERROR: \"duration_threshold\" value for \"Small Duration Calls\" Trigger not found :(\n")
+			//fraudionConfig.Triggers.SmallDurationCalls.DurationThreshold = fraudionConfig.General.DefaultTriggerCheckPeriod
+			return fmt.Errorf("ERROR: \"duration_threshold\" value for \"Small Duration Calls\" Trigger not found\n")
+
+		}
 
 	} else {
 		// TODO:LOG Log this to Syslog
 		fmt.Println("WARNING: \"Small Duration Calls\" Trigger config not present, disabling!")
 		fraudionConfig.Triggers.SmallDurationCalls.Enabled = false
 	}
+
+	fmt.Println("******", fraudionConfig.Triggers)
 
 	// Actions Section
 
@@ -418,7 +418,7 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 	return nil
 }
 
-func errorOnIncorrectType(condition bool, triggerName string, triggerValue string, expectedType string, foundType reflect.Type) error {
+func errorOnIncorrectType(condition bool, triggerName string, triggerValue string, expectedType string, foundType interface{}) error {
 	if !condition {
 		// TODO:LOG Log this to Syslog
 		errorMessage := fmt.Sprintf("\"%s\" value for \"%s\" Trigger not of correct type, %s expected found %s", triggerValue, triggerName, expectedType, foundType)
@@ -429,6 +429,7 @@ func errorOnIncorrectType(condition bool, triggerName string, triggerValue strin
 }
 
 func errorOnIncorrectValue(condition bool, triggerName string, triggerValue string, whatItMustBeMessage string) error {
+
 	if condition {
 		// TODO:LOG Log this to Syslog
 		errorMessage := fmt.Sprintf("\"%s\" value for \"%s\" in \"%s\" section is incorrect. ", triggerValue, triggerName, whatItMustBeMessage)
@@ -436,6 +437,7 @@ func errorOnIncorrectValue(condition bool, triggerName string, triggerValue stri
 		return fmt.Errorf("%s", strings.ToLower(errorMessage))
 	}
 	return nil
+
 }
 
 func checkJSONSanityOfEnabledConfigs(simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (bool, error) {
@@ -448,15 +450,13 @@ func checkJSONSanityOfEnabledConfigs(simCallsTriggerJSONConfig map[string]interf
 		}
 
 		return value, nil
-		//fraudionConfig.Triggers.SimultaneousCalls.Enabled = value
 
-	} else {
-		// TODO:LOG Log this to Syslog
-		fmt.Printf("WARNING: \"enabled\" value for \"%s\" Trigger not found, assuming true", triggerName)
-
-		return true, nil
-		//fraudionConfig.Triggers.SimultaneousCalls.Enabled = true
 	}
+
+	// TODO:LOG Log this to Syslog
+	fmt.Printf("WARNING: \"enabled\" value for \"%s\" Trigger not found, assuming true\n", triggerName)
+
+	return true, nil
 
 }
 
@@ -529,9 +529,55 @@ func checkJSONSanityOfHitThresholdConfigs(fraudionConfig *FraudionConfig, simCal
 
 		return uint32(value), nil
 
-	} else { // This value is mandatory!
-		// TODO:LOG Log this to Syslog
-		fmt.Printf("ERROR: \"hit_threshold\" value for \"%s\" Trigger not found", triggerName)
-		return 0, fmt.Errorf("\"hit_threshold\" value for \"%s\" trigger not found", triggerName)
 	}
+
+	// This value is mandatory!
+	// TODO:LOG Log this to Syslog
+	fmt.Printf("ERROR: \"hit_threshold\" value for \"%s\" Trigger not found", triggerName)
+	return 0, fmt.Errorf("\"hit_threshold\" value for \"%s\" trigger not found", triggerName)
+
+}
+
+func checkJSONSanityOfPrefixListConfigs(fraudionConfig *FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string) ([]string, error) {
+
+	if utils.StringKeyInMap("prefix_list", simCallsTriggerJSONConfig) {
+
+		sliceOfInterface := simCallsTriggerJSONConfig["prefix_list"]
+
+		// WARNING: Just checks if it's a slice basically (of anything really because interface{}) (verification of the type of the items of the slice is done below)
+		valueInterfaceSlice, hasCorrectType := sliceOfInterface.([]interface{})
+		if err := errorOnIncorrectType(hasCorrectType, triggerName, "prefix_list", "[]string", reflect.TypeOf(sliceOfInterface)); err != nil {
+			return *new([]string), err
+		}
+
+		sliceReflectValue := reflect.ValueOf(valueInterfaceSlice)
+		var finalSlice []string
+		for i := 0; i < sliceReflectValue.Len(); i++ {
+
+			// TODO This is not needed because the previous check catches this, because ints implement no interface? Don't know but it catches when the slice has ints...
+			valueOfSliceItem, hasCorrectType := sliceReflectValue.Index(i).Interface().(string)
+			if err := errorOnIncorrectType(hasCorrectType, triggerName, "prefix_list", "[]", reflect.TypeOf(sliceOfInterface)); err != nil {
+				return *new([]string), err
+			}
+
+			isNumericString, errCheckingValue := regexp.MatchString("^[0-9]+$", valueOfSliceItem)
+			if errCheckingValue != nil {
+				fmt.Printf("ERROR: Internal: There seems to be an issue with checking if the \"prefix_list\" string values are numeric\n")
+				return *new([]string), fmt.Errorf("internal: there seems to be an issue with checking if the \"prefix_list\" string values are numeric")
+			}
+			if err := errorOnIncorrectValue(!isNumericString, triggerName, "prefix_list", "Values must be Numeric Strings"); err != nil {
+				return *new([]string), err
+			}
+
+			finalSlice = append(finalSlice, valueOfSliceItem)
+		}
+
+		return finalSlice, nil
+
+	}
+
+	// TODO:LOG Log this to Syslog
+	fmt.Printf("ERROR: \"prefix_list\" value for \"%s\" Trigger not found\n", triggerName)
+	return *new([]string), fmt.Errorf("\"prefix_list\" value for \"%s\" not found", triggerName)
+
 }
