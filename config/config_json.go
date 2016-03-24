@@ -9,201 +9,127 @@ import (
 	"path/filepath"
 
 	"github.com/DisposaBoy/JsonConfigReader"
+	"github.com/fraudion/utils"
 )
 
 const (
-	DEFAULT_JSON_CONFIG_FILENAME = "fraudion.json"
+	constDefaultJSONConfigFilename = "fraudion.json"
 )
 
-// FraudionJSONConfig ...
-type FraudionJSONConfig struct {
-	General      JSONGeneral
-	Triggers     JSONTriggers
-	Actions      JSONActions
-	ActionChains JSONActionChains
-	Contacts     JSONContacts
-}
-
-// JSONGeneral ...
-type JSONGeneral struct {
-	Monitored_software                        string
-	Cdrs_source                               string
-	Default_trigger_check_period              string
-	Default_action_chain_sleep_period         string
-	Default_action_chain_run_count            uint32
-	Default_minimum_destination_number_length uint32
-}
-
-// JSONTriggers ...
-type JSONTriggers struct {
-	Simultaneous_calls     interface{} // map[string]interface{}
-	Dangerous_destinations interface{}
-	Expected_destinations  interface{}
-	Small_duration_calls   interface{}
-}
-
-// JSONActions ...
-type JSONActions struct {
-	Email          interface{} // jsonActionEmail
-	Call           interface{} // jsonActionCall
-	HTTP           interface{} // jsonActionHTTP
-	Local_commands interface{}
-}
-
-type jsonActionEmail struct {
-	Default_message string
-}
-
-type jsonActionCall struct {
-	Default_message string
-}
-
-type jsonActionHTTP struct {
-	Default_url        string
-	Default_method     string
-	Default_parameters map[string]string
-}
-
-// JSONActionChains ...
-type JSONActionChains map[string][]jsonActionChainAction
-
-type jsonActionChainAction struct {
-	Action   string
-	Contacts []string
-	Command  string
-}
-
-// JSONContacts ...
-type JSONContacts map[string]map[string]interface{}
-
 // LoadConfigFromJSONFile ...
-func (fraudionJSONConfig *FraudionJSONConfig) LoadConfigFromJSONFile(configDir string) error {
+func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir string) error {
 
-	configFileName := DEFAULT_JSON_CONFIG_FILENAME
-	configFileFullPath := filepath.Join(configDir, DEFAULT_JSON_CONFIG_FILENAME)
+	configFileName := constDefaultJSONConfigFilename
+	configFileFullPath := filepath.Join(configDir, constDefaultJSONConfigFilename)
 
+	// ** JSON config file to map[string] to Raw JSON
 	fmt.Printf("Trying to open the JSON config file \"%s\" at \"%s\" (fullpath: \"%s\").\n", configFileName, configDir, configFileFullPath)
 	configFileJSON, err := os.Open(filepath.Join(configDir, configFileName))
 	if err != nil {
-		// TODO Log this to Syslog
-		fmt.Printf("ERROR: There was an error (\"%s\") opening the JSON config file \"%s\" at \"%s\" (fullpath: \"%s\"). :(\n", err.Error(), configFileName, configDir, configFileFullPath)
-		os.Exit(-1)
+		customErrorMessage := fmt.Sprintf("There was an error opening the JSON config file (\"%s\")", err.Error())
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 	defer configFileJSON.Close()
 
-	/*scanner := bufio.NewScanner(configFileJSON)
-	for scanner.Scan() {
-		line := scanner.Text()
-		fmt.Println(line)
-	}*/
-
-	var RawJSON map[string]*json.RawMessage // Better than using the Lib example's Empty interface... https://tour.golang.org/methods/14
+	var RawJSON map[string]*json.RawMessage // NOTE: Better than using the Lib example's Empty interface... https://tour.golang.org/methods/14
 	JSONConfigReader := JsonConfigReader.New(configFileJSON)
 
-	err = json.NewDecoder(JSONConfigReader).Decode(&RawJSON)
+	err = json.NewDecoder(JSONConfigReader).Decode(&RawJSON) // NOTE: Reads the JSON file to JSONConfigReader as a map[string]<Raw JSON that has to be decoded further!>
 	if err != nil {
-		// TODO Log this to Syslog
-		fmt.Printf("ERROR: There was an error (\"%s\") parsing the JSON config file. :(\n", err.Error())
-		return err
+		customErrorMessage := fmt.Sprintf("There was an error doing the initial parsing of the JSON config file (\"%s\")", err.Error())
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	//fmt.Println(RawJSON)
-	//fmt.Println()
-
+	// ** JSON config file main configuration sections to "objects" (general, triggers, actions, etc)
 	// General Section
-	rawCfg, hasKey := RawJSON["general"]
+	rawGeneralJSON, hasKey := RawJSON["General"]
 	if hasKey == false {
-		// TODO Log this to Syslog
-		fmt.Println("ERROR: Could not find \"general\" section in config JSON. :(")
-		return fmt.Errorf("could not find \"general\" section in config json")
+		customErrorMessage := fmt.Sprintf("Could not find \"General\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
-	cfgJSONGeneral := new(JSONGeneral)
-	if err := json.Unmarshal(*rawCfg, cfgJSONGeneral); err != nil {
-		// TODO Log this to Syslog
-		fmt.Println("ERROR: Could not Unmarshal \"general\" JSON. :(")
-		return fmt.Errorf("could not Unmarshal \"general\" JSON")
+	configGeneralJSON := new(GeneralJSON)
+	if err := json.Unmarshal(*rawGeneralJSON, configGeneralJSON); err != nil {
+		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"General\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fmt.Println(reflect.TypeOf(cfgJSONGeneral))
-	fmt.Println(cfgJSONGeneral)
+	// TODO: Remove these prints!
+	fmt.Print(reflect.TypeOf(configGeneralJSON))
+	fmt.Println(" ", configGeneralJSON)
 
-	fraudionJSONConfig.General = *cfgJSONGeneral
+	fraudionJSONConfig.General = *configGeneralJSON
 
-	// Triggers Section
-	rawCfg, hasKey = RawJSON["triggers"]
+	// Triggers Sectionwefd
+	rawTriggersJSON, hasKey := RawJSON["Triggers"]
 	if hasKey == false {
-		// TODO Log this to Syslog
-		fmt.Println("ERROR: Could not find \"triggers\" section in config JSON. :(")
-		return fmt.Errorf("could not find \"triggers\" section in config JSON")
+		customErrorMessage := fmt.Sprintf("Could not find \"Triggers\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
-	cfgJSONTriggers := new(JSONTriggers)
-	if err := json.Unmarshal(*rawCfg, cfgJSONTriggers); err != nil {
-		// TODO Log this to Syslog
-		fmt.Println("Could not Unmarshal \"triggers\" JSON. :(")
-		return fmt.Errorf("could not Unmarshal \"triggers\" JSON")
+	configTriggersJSON := new(TriggersJSON)
+	if err := json.Unmarshal(*rawTriggersJSON, configTriggersJSON); err != nil {
+		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"Triggers\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fmt.Println(reflect.TypeOf(cfgJSONTriggers))
-	fmt.Println(cfgJSONTriggers)
+	// TODO: Remove these prints!
+	fmt.Print(reflect.TypeOf(configTriggersJSON))
+	fmt.Println(" ", configTriggersJSON)
 
-	fraudionJSONConfig.Triggers = *cfgJSONTriggers
+	fraudionJSONConfig.Triggers = *configTriggersJSON
 
 	// Actions Section
-	rawCfg, hasKey = RawJSON["actions"]
+	rawActionsJSON, hasKey := RawJSON["Actions"]
 	if hasKey == false {
-		// TODO Log this to Syslog
-		fmt.Println("Could not find \"actions\" section in config JSON. :(")
-		return fmt.Errorf("could not find \"actions\" section in config JSON")
+		customErrorMessage := fmt.Sprintf("Could not find \"Actions\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
-	cfgJSONActions := new(JSONActions)
-	if err := json.Unmarshal(*rawCfg, cfgJSONActions); err != nil {
-		// TODO Log this to Syslog
-		fmt.Println("Could not Unmarshal \"actions\" JSON. :(")
-		return fmt.Errorf("could not Unmarshal \"actions\" JSON")
+	configActionsJSON := new(ActionsJSON)
+	if err := json.Unmarshal(*rawActionsJSON, configActionsJSON); err != nil {
+		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"Actions\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fmt.Println(reflect.TypeOf(cfgJSONActions))
-	fmt.Println(cfgJSONActions)
+	// TODO: Remove these prints!
+	fmt.Print(reflect.TypeOf(configActionsJSON))
+	fmt.Println(" ", configActionsJSON)
 
-	fraudionJSONConfig.Actions = *cfgJSONActions
+	fraudionJSONConfig.Actions = *configActionsJSON
 
 	// Action Chains Section
-	rawCfg, hasKey = RawJSON["action_chains"]
+	rawActionChainsJSON, hasKey := RawJSON["ActionChains"]
 	if hasKey == false {
-		// TODO Log this to Syslog
-		fmt.Println("Could not find \"action_chains\" section in config JSON. :(")
-		return fmt.Errorf("could not find \"action_chains\" section in config JSON")
+		customErrorMessage := fmt.Sprintf("Could not find \"ActionChains\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
-	cfgJSONActionChains := new(JSONActionChains)
-	if err := json.Unmarshal(*rawCfg, cfgJSONActionChains); err != nil {
-		// TODO Log this to Syslog
-		fmt.Println("Could not Unmarshal \"action_chains\" JSON. :(")
-		return fmt.Errorf("could not Unmarshal \"action_chains\" JSON")
+	configActionChainsJSON := new(ActionChainsJSON)
+	if err := json.Unmarshal(*rawActionChainsJSON, configActionChainsJSON); err != nil {
+		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"ActionChains\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fmt.Println(reflect.TypeOf(cfgJSONActionChains))
-	fmt.Println(cfgJSONActionChains)
+	// TODO: Remove these prints!
+	fmt.Print(reflect.TypeOf(configActionChainsJSON))
+	fmt.Println(" ", configActionChainsJSON)
 
-	fraudionJSONConfig.ActionChains = *cfgJSONActionChains
+	fraudionJSONConfig.ActionChains = *configActionChainsJSON
 
 	// Contacts Section
-	rawCfg, hasKey = RawJSON["contacts"]
+	rawContactsJSON, hasKey := RawJSON["Contacts"]
 	if !hasKey {
-		// TODO Log this to Syslog
-		fmt.Println("Could not find \"contacts\" section in config JSON. :(")
-		return fmt.Errorf("could not find \"contacts\" section in config JSON")
+		customErrorMessage := fmt.Sprintf("Could not find \"Contacts\" section in config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
-	cfgJSONContacts := new(JSONContacts)
-	if err := json.Unmarshal(*rawCfg, cfgJSONContacts); err != nil {
-		// TODO Log this to Syslog
-		fmt.Println("Could not Unmarshal \"contacts\" JSON. :(")
-		return fmt.Errorf("could not Unmarshal \"contacts\" JSON")
+	configContactsJSON := new(ContactsJSON)
+	if err := json.Unmarshal(*rawContactsJSON, configContactsJSON); err != nil {
+		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"Contacts\" section inf config JSON")
+		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fmt.Println(reflect.TypeOf(cfgJSONContacts))
-	fmt.Println(cfgJSONContacts)
+	// TODO: Remove these prints!
+	fmt.Print(reflect.TypeOf(configContactsJSON))
+	fmt.Println(" ", configContactsJSON)
 
-	fraudionJSONConfig.Contacts = *cfgJSONContacts
+	fraudionJSONConfig.Contacts = *configContactsJSON
 
 	return nil
 

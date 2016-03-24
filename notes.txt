@@ -1,4 +1,6 @@
+
 Notes:
+ - Global help at https://github.com/golang/go/wiki/Projects
  - "Json" Config Reading via http://github.com/DisposaBoy/JsonConfigReader (Json file with comments... like cgrates)
  - Command Line argument parsing with https://golang.org/pkg/flag/
  - Sending e-mail help at https://github.com/golang/go/wiki/SendingMail
@@ -6,7 +8,10 @@ Notes:
  - Working with time at https://golang.org/pkg/time/, specially ParseDuration(s string) (Duration, error)
  - Timers/Ticks help at https://mmcgrana.github.io/2012/09/go-by-example-timers-and-tickers.html
  - Regexp Help at https://gobyexample.com/regular-expressions & https://github.com/google/re2/wiki/Syntax
- - Tyope Asserting interface{} to map[string]string help at http://play.golang.org/p/ghaYeP3llx
+ - Type Asserting interface{} to map[string]string help at http://play.golang.org/p/ghaYeP3llx
+ - Parse Duration help at https://golang.org/pkg/time/#ParseDuration
+
+Code Snippets:
 
  /*"chain_name": [
    {

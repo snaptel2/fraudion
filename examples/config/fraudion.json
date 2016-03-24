@@ -3,95 +3,102 @@
   // Simple Fraud Detection & Notification System for Asterisk/FreeSwitch
   // Configuration File
 
-  "general": {
-    "monitored_software": "*ast_el_2.3", // ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
-    "cdrs_source": "*db_mysql", // db_mysql: Database MySQL. TODO (v2) json: Json, csv: CSVs
-    "default_trigger_check_period": "10m", // Can be overriden in Trigger configuration
-    "default_action_chain_sleep_period": "30s", // Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
-    "default_action_chain_run_count": 3, // Count for the Reprocessing of the Action Chains
-    "default_minimum_destination_number_length": 10, // Only consider CDRs with destination number with len > this number (this is to exclude internal calls that normally have 3 to 5 digits destination numbers)
+  "General": {
+    "MonitoredSoftware": "*ast_el_2.3",           // [Mandatory] ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
+    "CDRsSource": "*db_mysql",                    // [Mandatory] db_mysql: Database MySQL. TODO (v2) json: Json, csv: CSVs
+    "DefaultTriggerCheckPeriod": "10m",           // [Mandatory] Can be overriden in Trigger configuration
+    "DefaultActionChainSleepPeriod": "30s",       // [Mandatory] Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
+    "DefaultActionChainRunCount": 3,              // [Mandatory] Count for the Reprocessing of the Action Chains
+    "DefaultMinimumDestinationNumberLength": 10,  // [Mandatory] Only consider CDRs with destination number with len > this number (this is to exclude internal calls that normally have 3 to 5 digits destination numbers)
   },
 
-  "triggers": {
-    "simultaneous_calls": {
-      "enabled": false, // [Optional] If you omit this we consider it "enabled" to disable either omit the key from Triggers section or add enabled: false
-      "check_period": "5m", // [Optional] Defaults to what's in "general" section
-      "hit_threshold": 5, // "this" many simultaneous calls calls when cheked will trigger!
-      "minimum_number_length": 5
+  "Triggers": {
+    "SimultaneousCalls": {
+      "Enabled": false,             // [Optional] If omitted we will assume "true" to disable, either omit the Trigger section or add enabled: false
+      "CheckPeriod": "5m",          // [Optional] Defaults to what's in "general" section
+      "HitThreshold": 5,
+      "MinimumNumberLength": 5,
+      "ActionChainName": "*default" // [Optional] If omitted we will assume "*default"
     },
-    "dangerous_destinations": {
-      "enabled": false,
-      "check_period": "5m", // [Optional] Defaults to what's in "general" section
-      "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
-      "minimum_number_length": 5,
-      "prefix_list": ["351", "34"] // We'll search for 00/+ before all prefixes also
+    "DangerousDestinations": {
+      "Enabled": false,             // see more info at "simultaneous_calls" section
+      "CheckPeriod": "5m",          // see more info at "simultaneous_calls" section
+      "HitThreshold": 5,            // see more info at "simultaneous_calls" section
+      "minimumNumberLength": 5,     // see more info at "simultaneous_calls" section
+      "PrefixList": ["351", "34"],
+      "ActionChainName": "*default" // see more info at "simultaneous_calls" section
     },
-    "expected_destinations": {
-      "enabled": false,
-      "check_period": "5m", // [Optional] Defaults to what's in "general" section
-      "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
-      "minimum_number_length": 5,
-      "prefix_list": ["244"]
+    "ExpectedDestinations": {
+      "Enabled": false,             // see more info at "simultaneous_calls" section
+      "CheckPeriod": "5m",          // see more info at "simultaneous_calls" section
+      "HitThreshold": 5,            // see more info at "simultaneous_calls" section
+      "MinimumNumberLength": 5,     // see more info at "simultaneous_calls" section
+      "PrefixList": ["244"],
+      "ActionChainName": "*default" // see more info at "simultaneous_calls" section
     },
-    "small_duration_calls": {
-      "enabled": false,
-      "check_period": "5m", // [Optional] Defaults to what's in "general" section
-      "hit_threshold": 5, // "this" number of calls in "check_period" will trigger!
-      "minimum_number_length": 5,
-      "duration_threshold": "5s"  // "this" number of calls calls in "check_period" will trigger!
+    "SmallDurationCalls": {
+      "Enabled": false,             // see more info at "simultaneous_calls" section
+      "CheckPeriod": "5m",          // see more info at "simultaneous_calls" section
+      "HitThreshold": 5,            // see more info at "simultaneous_calls" section
+      "MinimumNumberLength": 5,
+      "DurationThreshold": "5s",    // see more info at "simultaneous_calls" section
+      "ActionChainName": "*default" // see more info at "simultaneous_calls" section
     }
   },
 
-  "actions": {
-    "email": {
-      // TODO e-mail SMTP server configurations
-      "default_message": "email_message" // Can be overriden in Contacts
+  "Actions": {
+    "Email": {
+      "Enabled": true, // [Optional] If you omit this we consider it "disabled"
+      "Method": "*gmail", // [Optional/Future] Do use the gmail package at https://github.com/SlyMarbo/gmail/
+      "Authenticated": true, // [Optional/Future] Future! Not needed for Method *gmail
+      "Server": "", // [Optional/Future] Not needed for Method *gmail
+      "Port": "", // [Optional/Future] Not needed for Method *gmail
+      "Username": "",
+      "Password": ""
     },
-    "http": {
-      "default_url": "http_post_url", // Can be overriden in Contacts
-      "default_method": "http_sms_method", // *get OR *post Can be overriden in Contacts
-      "default_parameters": { // Can be overriden in Contacts
-        "http_post_parameters_1_k": "3",
-        "http_post_parameters_2_k": "http_post_parameters_2_v"
+    "HTTP": {
+      "Enabled": true
+    },
+    "Call": {
+      "Enabled": true,
+      "OriginateMethod": "*ami", // Can be overriden in Contacts
+      "OriginateParameters" : ""
+    },
+    "LocalCommands": { // You can define your own command actions by giving them a name and a string that will be executed on the system! "*local_command x N"
+      "Enabled": true
+    }
+  },
+
+  "ActionChains": {
+    "List": {
+      "Default": [
+        {
+          "Action": "*email",
+          "Contacts": ["contact_name", "contact_name2"], // TODO Optional Field? Because this does not apply to all actions!
+          "Command": "local_commands_1_k" // If action is local_commands
+        },
         // etc...
+      ]
+    }
+  },
+
+  "Contacts": {
+    "List": {
+      "ContactName": {
+        "for_actions": ["*action_name", "*action_name"], // The fields bellow used will depend on the values on this array.
+        "phone_number": "",
+        "email": "",
+        "message": "",
+        "http_url": "",
+        "http_method": "",
+        "http_parameters": {
+          "http_post_parameters_1_k": "http_post_parameters_1_v",
+          "http_post_parameters_2_k": "http_post_parameters_2_v"
+          // etc...
+        }
       }
-    },
-    "call": {
-      "default_message": "call_message", // Can be overriden in Contacts
-    },
-    "local_commands": { // You can define your own command actions by giving them a name and a string that will be executed on the system! "*local_command x N"
-      "local_commands_1_k": "asterisk -r 'core reload'",
-      "local_commands_2_k": "service asterisk stop"
       // etc...
     }
-  },
-
-  "action_chains": {
-    "default": [
-      {
-        "action": "*email",
-        "contacts": ["contact_name", "contact_name2"], // TODO Optional Field? Because this does not apply to all actions!
-        "command": "local_commands_1_k" // If action is local_commands
-      },
-      // etc...
-    ]
-  },
-
-  "contacts": {
-    "contact_name": {
-      "for_actions": ["*action_name", "*action_name"], // The fields bellow used will depend on the values on this array.
-      "phone_number": "",
-      "email": "",
-      "message": "",
-      "http_url": "",
-      "http_method": "",
-      "http_parameters": {
-        "http_post_parameters_1_k": "http_post_parameters_1_v",
-        "http_post_parameters_2_k": "http_post_parameters_2_v"
-        // etc...
-      }
-    }
-    // etc...
   }
 
 }

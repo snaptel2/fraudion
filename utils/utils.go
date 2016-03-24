@@ -1,5 +1,14 @@
 package utils
 
+import (
+	"fmt"
+	"strings"
+)
+
+const (
+	DEBUG = true
+)
+
 // StringInStringsSlice ...
 func StringInStringsSlice(str string, list []string) bool {
 	for _, v := range list {
@@ -18,4 +27,23 @@ func StringKeyInMap(theKey string, theMap map[string]interface{}) bool {
 		}
 	}
 	return false
+}
+
+// DebugLogAndGetError ...
+func DebugLogAndGetError(errorMessage string, getError bool) error {
+
+	customErrorMessage := fmt.Sprintf("ERROR: %s :(\n", errorMessage)
+
+	// TODO Log this to Syslog
+
+	if DEBUG {
+		fmt.Printf(customErrorMessage)
+	}
+
+	if getError {
+		return fmt.Errorf(strings.ToLower(customErrorMessage))
+	}
+
+	return nil
+
 }

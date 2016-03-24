@@ -4,19 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"os"
-	//"reflect"
-	//"time"
-
-	//"encoding/JSON"
-	//"path/filepath"
 
 	"github.com/fraudion/config"
-	//"github.com/fraudion/utils"
 )
 
 // Defines constants
 const (
-	DEFAULT_CONFIG_DIR = "examples/config" // "/usr/share/fraudion"
+	constDefaultConfigDir = "examples/config" // TODO: This will probably need to be changed to something like "/usr/share/fraudion" when we aproach a more usable version!
 	/*MYSQL              = "mysql"
 	FREESWITCH         = "fs"
 	ASTERISK           = "ast_alone"
@@ -25,7 +19,7 @@ const (
 
 // Defines expected CLI arguments/flags
 var (
-	cliConfigDir = flag.String("configdir", DEFAULT_CONFIG_DIR, "<help message for 'config_dir'>")
+	cliConfigDir = flag.String("configdir", constDefaultConfigDir, "<help message for 'config_dir'>")
 )
 
 // Starts here!
@@ -33,26 +27,24 @@ func main() {
 
 	fmt.Println()
 	fmt.Println("Starting...")
-	fmt.Println()
 
 	fmt.Println("Parsing CLI parameters...")
-	flag.Parse()
 
-	//fmt.Println(*cliConfigDir)
-
-	// TODO Try to get configs from JSON file.
-	JSONConfigs := new(config.FraudionJSONConfig)
+	JSONConfigs := new(config.FraudionConfigJSON)
 	err := JSONConfigs.LoadConfigFromJSONFile(*cliConfigDir)
 	if err != nil {
-		fmt.Println(err.Error())
+		//fmt.Println(err.Error())
 		os.Exit(-1)
 	}
 
-	config := new(config.FraudionConfig)
-	config.CheckJSONSanityAndLoadConfigs(JSONConfigs)
-
 	fmt.Println()
-	fmt.Println(config)
+	fmt.Println(JSONConfigs)
+
+	//config := new(config.FraudionConfig)
+	//config.CheckJSONSanityAndLoadConfigs(JSONConfigs)
+
+	//fmt.Println()
+	//fmt.Println(config)
 
 	/*fmt.Println("sadjaçidjfsdf", cfgGeneral.Monitored_software)
 	fmt.Println("sadjaçidjfsdf", supported_software)

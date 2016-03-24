@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
@@ -11,205 +12,104 @@ import (
 )
 
 const (
-	MINIMUM_TRIGGER_CHECK_PERIOD      = "5m"
-	MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD = "5m"
+	constMinimumTriggerCheckPeriod     = "5m"
+	constMaximumActionChainSleepPeriod = "5m"
 )
 
 var (
-	SUPPORTED_SOFTWARE     = []string{"*ast_el_2.3", "*ast_alone_1.8"}
-	SUPPORTED_CDRS_SOURCES = []string{"*db_mysql"}
+	constSupportedSoftware = []string{"*ast_el_2.3", "*ast_alone_1.8"}
+	constSupportCDRSources = []string{"*db_mysql"}
 )
 
-// FraudionConfig ...
-type FraudionConfig struct {
-	General      General
-	Triggers     Triggers
-	Actions      Actions
-	ActionChains ActionChains
-	Contacts     Contacts
-}
-
-// General ...
-type General struct {
-	MonitoredSoftware                     string
-	CdrsSource                            string
-	DefaultTriggerCheckPeriod             time.Duration
-	DefaultActionChainSleepPeriod         time.Duration
-	DefaultActionChainRunCount            uint32
-	DefaultMinimumDestinationNumberLength uint32
-	// TODO Default Hit Threshold
-}
-
-// Triggers ...
-type Triggers struct {
-	SimultaneousCalls     triggerSimultaneousCalls
-	DangerousDestinations triggerDangerousDestinations
-	ExpectedDestinations  triggerExpectedDestinations
-	SmallDurationCalls    triggerSmallCallDurations
-}
-
-type triggerSimultaneousCalls struct {
-	Enabled             bool
-	CheckPeriod         time.Duration
-	HitThreshold        uint32
-	MinimumNumberLength uint32
-}
-
-type triggerDangerousDestinations struct {
-	Enabled             bool
-	CheckPeriod         time.Duration
-	HitThreshold        uint32
-	MinimumNumberLength uint32
-	PrefixList          []string
-}
-
-type triggerExpectedDestinations struct {
-	Enabled             bool
-	CheckPeriod         time.Duration
-	HitThreshold        uint32
-	MinimumNumberLength uint32
-	PrefixList          []string
-}
-
-type triggerSmallCallDurations struct {
-	Enabled             bool
-	CheckPeriod         time.Duration
-	HitThreshold        uint32
-	MinimumNumberLength uint32
-	DurationThreshold   time.Duration
-}
-
-// Actions ...
-type Actions struct {
-	Email         actionEmail
-	Call          actionCall
-	HTTP          actionHTTP
-	LocalCommands map[string]string
-}
-
-type actionEmail struct {
-	DefaultMessage string
-}
-
-type actionCall struct {
-	DefaultMessage string
-}
-
-type actionHTTP struct {
-	DefaultURL        string
-	DefaultMethod     string
-	DefaultParameters map[string]string
-}
-
-type actionLocalCommands struct {
-	List map[string]string
-}
-
-// ActionChains ...
-type ActionChains struct {
-	List map[string][]actionChainAction
-}
-
-type actionChainAction struct {
-	Action   string
-	Contacts []string
-	Command  string
-}
-
-// Contacts ...
-type Contacts struct {
-	List map[string]contact
-}
-
-type contact struct {
-	ForActions     []string
-	PhoneNumber    string
-	Email          string
-	Message        string
-	HTTPURL        string
-	HTTPMethod     string
-	HTTPParameters map[string]string
-}
-
 // CheckJSONSanityAndLoadConfigs ...
-func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs *FraudionJSONConfig) error {
+func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs *FraudionConfigJSON, validateOnly bool) error {
 
-	// General Section
-	//  Monitored Software
-	found := utils.StringInStringsSlice(JSONConfigs.General.Monitored_software, SUPPORTED_SOFTWARE)
-	if found == false {
-		// TODO:LOG Log this to Syslog
-		fmt.Println("Could not find configured \"monitored_software\" in supported software list. :(")
-		return fmt.Errorf("could not find configured \"monitored_software\" in supported software list")
+	// ** General Section
+	// Monitored Software
+	valueOfMonitoredSoftware, hasCorrectType := JSONConfigs.General.MonitoredSoftware.(string)
+	if err := errorOnIncorrectType(hasCorrectType, "General", "MonitoredSoftware", "string", reflect.TypeOf(valueOfMonitoredSoftware)); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
 	}
-
-	fraudionConfig.General.MonitoredSoftware = JSONConfigs.General.Monitored_software
-
-	//  CDRs Source
-	found = utils.StringInStringsSlice(JSONConfigs.General.Cdrs_source, SUPPORTED_CDRS_SOURCES)
-	if found == false {
-		// TODO:LOG Log this to Syslog
-		fmt.Println("Could not find configured \"cdrs_source\" in supported CDR sources list. :(")
-		return fmt.Errorf("could not find configured \"cdrs_source\" in CDR sources list")
+	found := utils.StringInStringsSlice(valueOfMonitoredSoftware, constSupportedSoftware)
+	if err := errorOnValueNotFound(!found, "General", "MonitoredSoftware", fmt.Sprintf("%s", constSupportedSoftware), valueOfMonitoredSoftware, true); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
 	}
+	fraudionConfig.General.MonitoredSoftware = valueOfMonitoredSoftware
 
-	fraudionConfig.General.CdrsSource = JSONConfigs.General.Cdrs_source
+	// CDRs Source
+	valueOfCDRsSource, hasCorrectType := JSONConfigs.General.CDRsSource.(string)
+	if err := errorOnIncorrectType(hasCorrectType, "General", "CDRsSource", "string", reflect.TypeOf(valueOfCDRsSource)); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
+	}
+	found = utils.StringInStringsSlice(valueOfMonitoredSoftware, constSupportCDRSources)
+	if err := errorOnValueNotFound(!found, "General", "CDRsSource", fmt.Sprintf("%s", constSupportCDRSources), valueOfCDRsSource, true); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
+	}
+	fraudionConfig.General.CDRsSource = valueOfCDRsSource
 
-	//  Default_trigger_check_period
-	defaultTriggerCheckPeriodDuration, errDuration := time.ParseDuration(JSONConfigs.General.Default_trigger_check_period)
-	if err := errorOnIncorrectValue(errDuration != nil, "General", "default_trigger_check_period", "Must be a valid duration"); err != nil {
+	// DefaultTriggerCheckPeriod
+	valueOfDefaultTriggerCheckPeriod, hasCorrectType := JSONConfigs.General.DefaultTriggerCheckPeriod.(string)
+	if err := errorOnIncorrectType(hasCorrectType, "General", "DefaultTriggerCheckPeriod", "string", reflect.TypeOf(valueOfDefaultTriggerCheckPeriod)); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
+	}
+	durationValueOfDefaultTriggerCheckPeriod, errDuration := time.ParseDuration(valueOfDefaultTriggerCheckPeriod)
+	if err := errorOnIncorrectValue(errDuration != nil, "General", "DefaultTriggerCheckPeriod", "parseable Duration (e.g. 5\"s\", \"m\" or \"h\")", valueOfDefaultTriggerCheckPeriod); err != nil {
 		return err
 	}
 
-	minimumTriggerCheckPeriodDuration, errMinimumCheckPeriodDuration := time.ParseDuration(MINIMUM_TRIGGER_CHECK_PERIOD)
-	errorMessageSuffix := fmt.Sprintf("Minimum value is \"%s\"", MINIMUM_TRIGGER_CHECK_PERIOD)
-	if err := errorOnIncorrectValue(defaultTriggerCheckPeriodDuration < minimumTriggerCheckPeriodDuration, "General", "default_trigger_check_period", errorMessageSuffix); err != nil {
+	durationValueOfConstMinimumTriggerCheckPeriod, errMinimumCheckPeriodDuration := time.ParseDuration(constMinimumTriggerCheckPeriod)
+	errorMessageSuffix := fmt.Sprintf("Minimum value is \"%s\"", constMinimumTriggerCheckPeriod)
+	if err := errorOnIncorrectValue(durationValueOfDefaultTriggerCheckPeriod < durationValueOfConstMinimumTriggerCheckPeriod, "General", "DefaultTriggerCheckPeriod", errorMessageSuffix, ""); err != nil {
 		return err
 	}
 
 	if errMinimumCheckPeriodDuration != nil {
 		// TODO:LOG Log this to Syslog
-		fmt.Printf("ERROR: Internal: There seems to be an issue with the definition of the constant MINIMUM_TRIGGER_CHECK_PERIOD")
-		return fmt.Errorf("internal: there seems to be an issue with the definition of the constant MINIMUM_TRIGGER_CHECK_PERIOD")
+		fmt.Printf("ERROR: Internal: There seems to be an issue with the definition of the constant constMinimumTriggerCheckPeriod")
+		return fmt.Errorf("internal: there seems to be an issue with the definition of the constant constMinimumTriggerCheckPeriod")
 	}
 
-	fraudionConfig.General.DefaultTriggerCheckPeriod = defaultTriggerCheckPeriodDuration
+	fraudionConfig.General.DefaultTriggerCheckPeriod = durationValueOfDefaultTriggerCheckPeriod
 
-	//  Default_action_chain_sleep_period
-	defaultActionChainSleepPeriodDuration, err := time.ParseDuration(JSONConfigs.General.Default_action_chain_sleep_period)
+	/*//  DefaultActionChainSleePeriod
+	valueOfDefaultActionChainSleePeriod, hasCorrectType := JSONConfigs.General.DefaultActionChainSleePeriod.(string)
+	if err := errorOnIncorrectType(hasCorrectType, "General", "valueOfDefaultActionChainSleePeriod", "string", reflect.TypeOf(valueOfDefaultActionChainSleePeriod)); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
+	}
+	defaultActionChainSleepPeriodDuration, err := time.ParseDuration(valueOfDefaultActionChainSleePeriod)
 	if err != nil {
 		// TODO:LOG Log this to Syslog
 		fmt.Println("ERROR: It seems that the value in \"default_action_chain_sleep_period\" is not a valid duration. :(")
 		return fmt.Errorf("it seems that the value in \"default_action_chain_sleep_period\" is not a valid duration")
 	}
 
-	MaximumActionChainSleepPeriodDuration, errMaximumChainSleepPeriod := time.ParseDuration(MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD)
+	MaximumActionChainSleepPeriodDuration, errMaximumChainSleepPeriod := time.ParseDuration(constMaximumActionChainSleepPeriod)
 	if defaultActionChainSleepPeriodDuration > MaximumActionChainSleepPeriodDuration {
 		// TODO:LOG Log this to Syslog
-		fmt.Printf("ERROR: \"default_trigger_check_period\" is too big. Maximum value is \"%s\". :(", MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD)
-		return fmt.Errorf("\"default_trigger_check_period\" is too big. maximum value is \"%s\"", MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD)
+		fmt.Printf("ERROR: \"default_trigger_check_period\" is too big. Maximum value is \"%s\". :(", constMaximumActionChainSleepPeriod)
+		return fmt.Errorf("\"default_trigger_check_period\" is too big. maximum value is \"%s\"", constMaximumActionChainSleepPeriod)
 	}
 
 	if errMaximumChainSleepPeriod != nil {
 		// TODO:LOG Log this to Syslog
-		fmt.Printf("ERROR: Internal: There seems to be an issue with the definition of the constant MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD")
-		return fmt.Errorf("internal: there seems to be an issue with the definition of the constant MAXIMUM_ACTION_CHAIN_SLEEP_PERIOD")
+		fmt.Printf("ERROR: Internal: There seems to be an issue with the definition of the constant constMaximumActionChainSleepPeriod")
+		return fmt.Errorf("internal: there seems to be an issue with the definition of the constant constMaximumActionChainSleepPeriod")
 	}
 
 	fraudionConfig.General.DefaultActionChainSleepPeriod = defaultActionChainSleepPeriodDuration
 
 	//  Default_action_chain_run_count
 	// TODO Add some kind of limits here?
-	fraudionConfig.General.DefaultActionChainRunCount = JSONConfigs.General.Default_action_chain_run_count
+	fraudionConfig.General.DefaultActionChainRunCount = JSONConfigs.General.DefaultActionChainRunCount
 
 	//  Default_minimum_destination_number_length
 	// TODO Add some kind of limits here?
-	fraudionConfig.General.DefaultMinimumDestinationNumberLength = JSONConfigs.General.Default_minimum_destination_number_length
+	fraudionConfig.General.DefaultMinimumDestinationNumberLength = JSONConfigs.General.DefaultMinimumDestinationNumberLength
 
 	// **** Triggers Section
 	//  Simultaneous calls
 	//   Check if Trigger is present!
-	simCallsTriggerJSONConfig, triggerIsPresent := JSONConfigs.Triggers.Simultaneous_calls.(map[string]interface{})
+	simCallsTriggerJSONConfig, triggerIsPresent := JSONConfigs.Triggers.SimultaneousCalls.(map[string]interface{})
 	if triggerIsPresent {
 
 		// ** Search "enabled" Key [Optional], defaults to "enabled"
@@ -410,25 +310,41 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 	fmt.Println("******", fraudionConfig.Triggers)
 
 	// Actions Section
-	simCallsActionsJSONConfig, triggerIsPresent := JSONConfigs.Actions.HTTP.(map[string]interface{})
-	fmt.Println("**", simCallsActionsJSONConfig)
-	fmt.Println(reflect.TypeOf(simCallsActionsJSONConfig))
-	fmt.Println(triggerIsPresent)
+	actionHTTPJSONConfig, actionIsPresent := JSONConfigs.Actions.HTTP.(map[string]interface{})
+	fmt.Println("**", actionHTTPJSONConfig)
+	fmt.Println(reflect.TypeOf(actionHTTPJSONConfig))
+	fmt.Println(actionIsPresent)
 	fmt.Println()
-	valueDefaultMessage, hasCorrectType := simCallsActionsJSONConfig["default_parameters"].(map[string]interface{})
-	fmt.Println("**", reflect.ValueOf(simCallsActionsJSONConfig["default_parameters"]).Interface())
-	fmt.Println(valueDefaultMessage)
-	fmt.Println(reflect.TypeOf(valueDefaultMessage))
+
+	valueDefaultMethod, hasCorrectType := actionHTTPJSONConfig["default_method"].(string)
+	fmt.Println(valueDefaultMethod)
 	fmt.Println(hasCorrectType)
-	for k, _ := range valueDefaultMessage {
+	valueDefaultURL, hasCorrectType := actionHTTPJSONConfig["default_url"].(string)
+	fmt.Println(valueDefaultURL)
+	fmt.Println(hasCorrectType)
+
+	// Doesn't work like this!
+	valueDefaultParameters2, hasCorrectType := actionHTTPJSONConfig["default_parameters"].(map[string]string)
+	//fmt.Println("**", reflect.ValueOf(actionHTTPJSONConfig["default_parameters"]).Interface())
+	fmt.Println("**", valueDefaultParameters2)
+	fmt.Println(reflect.TypeOf(valueDefaultParameters2))
+	fmt.Println(hasCorrectType)
+
+	// Works like this!
+	valueDefaultParameters, hasCorrectType := actionHTTPJSONConfig["default_parameters"].(map[string]interface{})
+	fmt.Println("**", reflect.ValueOf(actionHTTPJSONConfig["default_parameters"]).Interface())
+	fmt.Println(valueDefaultParameters)
+	fmt.Println(reflect.TypeOf(valueDefaultParameters))
+	fmt.Println(hasCorrectType)
+	for k := range valueDefaultParameters {
 		fmt.Println(k)
-		valueDefaultMessage, hasCorrectType := valueDefaultMessage[k].(string)
+		valueDefaultParameters, hasCorrectType := valueDefaultParameters[k].(string)
 		if !hasCorrectType {
 			fmt.Println("WHAAAAAAAAAAAAAAAAAAAAAAAT??")
 		}
-		fmt.Println(valueDefaultMessage)
-		fmt.Println(reflect.TypeOf(valueDefaultMessage))
-	}
+		fmt.Println(valueDefaultParameters)
+		fmt.Println(reflect.TypeOf(valueDefaultParameters))
+	}*/
 	/*valueDefaultMessage2, hasCorrectType := valueDefaultMessage.(map[string]string)
 	fmt.Println("**", reflect.ValueOf(valueDefaultMessage))
 	fmt.Println(valueDefaultMessage2)
@@ -570,26 +486,34 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(JSONConfigs 
 	return nil
 }
 
-func errorOnIncorrectType(condition bool, triggerName string, triggerValue string, expectedType string, foundType interface{}) error {
+func errorOnIncorrectType(condition bool, sectionName string, valueNameOrPath string, typeExpected string, typeFound interface{}) error {
 	if !condition {
-		// TODO:LOG Log this to Syslog
-		errorMessage := fmt.Sprintf("\"%s\" value for \"%s\" Trigger not of correct type, %s expected found %s", triggerValue, triggerName, expectedType, foundType)
-		fmt.Printf("ERROR: %s :(\n", errorMessage)
+		errorMessage := fmt.Sprintf("Value of \"%s\" in Section \"%s\" has an incorrect type (expected %s, found %s)", valueNameOrPath, sectionName, typeExpected, typeFound)
 		return fmt.Errorf("%s", strings.ToLower(errorMessage))
 	}
 	return nil
 }
 
-func errorOnIncorrectValue(condition bool, triggerName string, triggerValue string, whatItMustBeMessage string) error {
-
+func errorOnIncorrectValue(condition bool, sectionName string, valueNameOrPath string, valueExpected string, valueFound string) error {
 	if condition {
-		// TODO:LOG Log this to Syslog
-		errorMessage := fmt.Sprintf("\"%s\" value for \"%s\" in \"%s\" section is incorrect. ", triggerValue, triggerName, whatItMustBeMessage)
-		fmt.Printf("ERROR: %s :(", errorMessage)
+		errorMessage := fmt.Sprintf("Value of \"%s\" in Section \"%s\" is incorrect type (expected %s, found %s)", valueNameOrPath, sectionName, valueExpected, valueFound)
 		return fmt.Errorf("%s", strings.ToLower(errorMessage))
 	}
 	return nil
+}
 
+func errorOnValueNotFound(condition bool, sectionName string, valueNameOrPath string, valueExpected string, valueFound string, mandatory bool) error {
+	if condition {
+		var mandatoryString string
+		if mandatory {
+			mandatoryString = "yes"
+		} else {
+			mandatoryString = "no"
+		}
+		errorMessage := fmt.Sprintf("Value of \"%s\" in Section \"%s\" not found (mandatory? %s)", valueNameOrPath, sectionName, mandatoryString)
+		return fmt.Errorf("%s", strings.ToLower(errorMessage))
+	}
+	return nil
 }
 
 func checkJSONSanityOfEnabledConfigs(simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (bool, error) {
@@ -614,20 +538,20 @@ func checkJSONSanityOfEnabledConfigs(simCallsTriggerJSONConfig map[string]interf
 
 func checkJSONSanityOfCheckPeriodConfigs(fraudionConfig *FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string, minimumTriggerCheckPeriodDuration time.Duration) (time.Duration, error) {
 
-	if utils.StringKeyInMap("check_period", simCallsTriggerJSONConfig) {
+	if utils.StringKeyInMap("CheckPeriod", simCallsTriggerJSONConfig) {
 
-		valueString, hasCorrectType := simCallsTriggerJSONConfig["check_period"].(string)
-		if err := errorOnIncorrectType(hasCorrectType, triggerName, "check_period", "string", reflect.TypeOf(simCallsTriggerJSONConfig["check_period"])); err != nil {
+		valueString, hasCorrectType := simCallsTriggerJSONConfig["CheckPeriod"].(string)
+		if err := errorOnIncorrectType(hasCorrectType, triggerName, "CheckPeriod", "string", reflect.TypeOf(simCallsTriggerJSONConfig["check_period"])); err != nil {
 			return 0, err
 		}
 
 		valueDuration, errDuration := time.ParseDuration(valueString)
-		if err := errorOnIncorrectValue(errDuration != nil, triggerName, "check_period", "Must be a valid duration"); err != nil {
+		if err := errorOnIncorrectValue(errDuration != nil, triggerName, "CheckPeriod", "Must be a valid duration", valueString); err != nil {
 			return 0, err
 		}
 
-		errorMessageSuffix := fmt.Sprintf("Minimum value is \"%s\"", MINIMUM_TRIGGER_CHECK_PERIOD)
-		if err := errorOnIncorrectValue(valueDuration < minimumTriggerCheckPeriodDuration, triggerName, "check_period", errorMessageSuffix); err != nil {
+		errorMessageSuffix := fmt.Sprintf("Minimum value is \"%s\"", constMinimumTriggerCheckPeriod)
+		if err := errorOnIncorrectValue(valueDuration < minimumTriggerCheckPeriodDuration, triggerName, "check_period", errorMessageSuffix, valueString); err != nil {
 			return 0, err
 		}
 
@@ -636,21 +560,21 @@ func checkJSONSanityOfCheckPeriodConfigs(fraudionConfig *FraudionConfig, simCall
 	}
 
 	// TODO:LOG Log this to Syslog
-	fmt.Printf("WARNING: \"check_period\" value for \"%s\" Trigger not found, assuming %s\n", triggerName, fraudionConfig.General.DefaultTriggerCheckPeriod)
+	fmt.Printf("WARNING: \"CheckPeriod\" value for \"%s\" Trigger not found, assuming %s\n", triggerName, fraudionConfig.General.DefaultTriggerCheckPeriod)
 	return fraudionConfig.General.DefaultTriggerCheckPeriod, nil
 
 }
 
 func checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig *FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (uint32, error) {
 
-	if utils.StringKeyInMap("minimum_number_length", simCallsTriggerJSONConfig) {
+	if utils.StringKeyInMap("MinimumNumberLength", simCallsTriggerJSONConfig) {
 
-		value, hasCorrectType := simCallsTriggerJSONConfig["minimum_number_length"].(float64)
-		if err := errorOnIncorrectType(hasCorrectType, triggerName, "minimum_number_length", "float64", reflect.TypeOf(simCallsTriggerJSONConfig["minimum_number_length"])); err != nil {
+		value, hasCorrectType := simCallsTriggerJSONConfig["MinimumNumberLength"].(float64)
+		if err := errorOnIncorrectType(hasCorrectType, triggerName, "MinimumNumberLength", "float64", reflect.TypeOf(simCallsTriggerJSONConfig["minimum_number_length"])); err != nil {
 			return 0, err
 		}
 
-		if err := errorOnIncorrectValue(value <= 0, triggerName, "minimum_number_length", "Must be > 0"); err != nil {
+		if err := errorOnIncorrectValue(value <= 0, triggerName, "MinimumNumberLength", "Must be > 0", strconv.FormatFloat(value, 'f', 6, 64)); err != nil {
 			return 0, err
 		}
 
@@ -675,7 +599,7 @@ func checkJSONSanityOfHitThresholdConfigs(fraudionConfig *FraudionConfig, simCal
 			return 0, err
 		}
 
-		if err := errorOnIncorrectValue(value <= 0, triggerName, "hit_threshold", "Must be > 0"); err != nil {
+		if err := errorOnIncorrectValue(value <= 0, triggerName, "HitThreshold", "integer > 0", strconv.FormatFloat(value, 'f', 6, 64)); err != nil {
 			return 0, err
 		}
 
@@ -717,7 +641,7 @@ func checkJSONSanityOfPrefixListConfigs(fraudionConfig *FraudionConfig, simCalls
 				fmt.Printf("ERROR: Internal: There seems to be an issue with checking if the \"prefix_list\" string values are numeric\n")
 				return *new([]string), fmt.Errorf("internal: there seems to be an issue with checking if the \"prefix_list\" string values are numeric")
 			}
-			if err := errorOnIncorrectValue(!isNumericString, triggerName, "prefix_list", "Values must be Numeric Strings"); err != nil {
+			if err := errorOnIncorrectValue(!isNumericString, triggerName, "prefix_list", "Values must be Numeric Strings", valueOfSliceItem); err != nil {
 				return *new([]string), err
 			}
 
