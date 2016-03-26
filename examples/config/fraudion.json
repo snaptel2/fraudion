@@ -4,12 +4,13 @@
   // Configuration File
 
   "General": {
-    "MonitoredSoftware": "*ast_el_2.3",           // [Mandatory] ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
+    "MonitoredSoftware": "*ast_alone_1.8",        // [Mandatory] ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
     "CDRsSource": "*db_mysql",                    // [Mandatory] db_mysql: Database MySQL. TODO (v2) json: Json, csv: CSVs
     "DefaultTriggerCheckPeriod": "10m",           // [Mandatory] Can be overriden in Trigger configuration
-    "DefaultActionChainSleepPeriod": "30s",       // [Mandatory] Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
-    "DefaultActionChainRunCount": 3,              // [Mandatory] Count for the Reprocessing of the Action Chains
-    "DefaultMinimumDestinationNumberLength": 10,  // [Mandatory] Only consider CDRs with destination number with len > this number (this is to exclude internal calls that normally have 3 to 5 digits destination numbers)
+    "DefaultHitThreshold": 5,
+    "DefaultMinimumDestinationNumberLength": 3,   // [Mandatory] Only consider CDRs with destination number with len > this number (this is to exclude internal calls that normally have 3 to 5 digits destination numbers)
+    "DefaultActionChainSleepPeriod": "5m",        // [Mandatory] Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
+    "DefaultActionChainRunCount": 3              // [Mandatory] Count for the Reprocessing of the Action Chains
   },
 
   "Triggers": {
@@ -41,7 +42,7 @@
       "CheckPeriod": "5m",          // see more info at "simultaneous_calls" section
       "HitThreshold": 5,            // see more info at "simultaneous_calls" section
       "MinimumNumberLength": 5,
-      "DurationThreshold": "5s",    // see more info at "simultaneous_calls" section
+      "DurationThreshold": "5s",
       "ActionChainName": "*default" // see more info at "simultaneous_calls" section
     }
   },

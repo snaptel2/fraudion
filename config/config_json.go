@@ -19,6 +19,9 @@ const (
 // LoadConfigFromJSONFile ...
 func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir string) error {
 
+	// TODO: Remove this print!
+	fmt.Println("** JSON file parsing start.")
+
 	configFileName := constDefaultJSONConfigFilename
 	configFileFullPath := filepath.Join(configDir, constDefaultJSONConfigFilename)
 
@@ -130,6 +133,9 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 	fmt.Println(" ", configContactsJSON)
 
 	fraudionJSONConfig.Contacts = *configContactsJSON
+
+	// TODO: Remove this print!
+	fmt.Println("** JSON file parsing end.")
 
 	return nil
 

@@ -18,10 +18,10 @@ type General struct {
 	MonitoredSoftware                     string
 	CDRsSource                            string
 	DefaultTriggerCheckPeriod             time.Duration
+	DefaultHitThreshold                   uint32
+	DefaultMinimumDestinationNumberLength uint32
 	DefaultActionChainSleepPeriod         time.Duration
 	DefaultActionChainRunCount            uint32
-	DefaultMinimumDestinationNumberLength uint32
-	// TODO Default Hit Threshold
 }
 
 // Triggers ...

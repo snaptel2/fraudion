@@ -30,18 +30,21 @@ func main() {
 
 	fmt.Println("Parsing CLI parameters...")
 
-	JSONConfigs := new(config.FraudionConfigJSON)
-	err := JSONConfigs.LoadConfigFromJSONFile(*cliConfigDir)
+	ConfigsJSON := new(config.FraudionConfigJSON)
+	err := ConfigsJSON.LoadConfigFromJSONFile(*cliConfigDir)
 	if err != nil {
-		//fmt.Println(err.Error())
 		os.Exit(-1)
 	}
 
-	fmt.Println()
-	fmt.Println(JSONConfigs)
+	fmt.Println("** Parsed JSON:", ConfigsJSON)
 
-	//config := new(config.FraudionConfig)
-	//config.CheckJSONSanityAndLoadConfigs(JSONConfigs)
+	configs := new(config.FraudionConfig)
+	err = configs.CheckJSONSanityAndLoadConfigs(ConfigsJSON)
+	if err != nil {
+		os.Exit(-1)
+	}
+
+	fmt.Println("** Configs:", configs)
 
 	//fmt.Println()
 	//fmt.Println(config)

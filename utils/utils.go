@@ -2,7 +2,7 @@ package utils
 
 import (
 	"fmt"
-	"strings"
+	//"strings"
 )
 
 const (
@@ -41,7 +41,8 @@ func DebugLogAndGetError(errorMessage string, getError bool) error {
 	}
 
 	if getError {
-		return fmt.Errorf(strings.ToLower(customErrorMessage))
+		//return fmt.Errorf(strings.ToLower(customErrorMessage))
+		return fmt.Errorf(customErrorMessage)
 	}
 
 	return nil
