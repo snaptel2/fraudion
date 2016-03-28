@@ -19,14 +19,16 @@ func DangerousDestinationsRun(configs *config.FraudionConfig, db *sql.DB) {
 
 	ticker := time.NewTicker(triggerConfigs.CheckPeriod)
 
-	err := db.Ping() // Open doest not open a connection. This is the way to see if the server is available.
+	err := db.Ping() // Open does not "open" a connection. This is the way to see if the server is available.
 	fmt.Println(err)
 
+	// TODO: Consider separating hits that start with the prefix and that have the prefix inside (there could be matches inside that do not correspond with a call to the prefix)
 	hits := make(map[string]uint32)
 	for _, prefix := range triggerConfigs.PrefixList {
 		hits[prefix] = uint32(0)
 	}
 
+	// TODO: The interval should come from the configs? That's what the commented ConsiderCDRsFromLast field would be for
 	rows, err := db.Query("SELECT * FROM cdr WHERE calldate >= DATE_SUB(CURDATE(), INTERVAL 2 MONTH) ORDER BY calldate DESC;")
 	if err != nil {
 		fmt.Println(err)
@@ -154,6 +156,13 @@ func DangerousDestinationsRun(configs *config.FraudionConfig, db *sql.DB) {
 	for _, hits := range hits {
 		if hits >= triggerConfigs.HitThreshold {
 			// TODO Run actionChain!
+			addition := triggerConfigs.LastActionChainRunTime.Add(configs.General.DefaultActionChainSleepPeriod)
+			fmt.Println(addition, time.Now())
+			if addition.Before(time.Now()) {
+				fmt.Println("WOW! This would run action chain:", triggerConfigs.ActionChainName)
+				triggerConfigs.LastActionChainRunTime = time.Now()
+			}
+
 		}
 	}
 

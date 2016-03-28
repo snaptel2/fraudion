@@ -33,38 +33,42 @@ type Triggers struct {
 }
 
 type triggerSimultaneousCalls struct {
-	Enabled             bool
-	CheckPeriod         time.Duration
-	HitThreshold        uint32
-	MinimumNumberLength uint32
-	ActionChainName     string
+	Enabled                bool
+	CheckPeriod            time.Duration
+	HitThreshold           uint32
+	MinimumNumberLength    uint32
+	ActionChainName        string
+	LastActionChainRunTime time.Time
 }
 
 type triggerDangerousDestinations struct {
-	Enabled             bool
-	CheckPeriod         time.Duration
-	HitThreshold        uint32
-	MinimumNumberLength uint32
-	PrefixList          []string
-	ActionChainName     string
+	Enabled                bool
+	CheckPeriod            time.Duration
+	HitThreshold           uint32
+	MinimumNumberLength    uint32
+	PrefixList             []string
+	ActionChainName        string
+	LastActionChainRunTime time.Time
 }
 
 type triggerExpectedDestinations struct {
-	Enabled             bool
-	CheckPeriod         time.Duration
-	HitThreshold        uint32
-	MinimumNumberLength uint32
-	PrefixList          []string
-	ActionChainName     string
+	Enabled                bool
+	CheckPeriod            time.Duration
+	HitThreshold           uint32
+	MinimumNumberLength    uint32
+	PrefixList             []string
+	ActionChainName        string
+	LastActionChainRunTime time.Time
 }
 
 type triggerSmallCallDurations struct {
-	Enabled             bool
-	CheckPeriod         time.Duration
-	HitThreshold        uint32
-	MinimumNumberLength uint32
-	DurationThreshold   time.Duration
-	ActionChainName     string
+	Enabled                bool
+	CheckPeriod            time.Duration
+	HitThreshold           uint32
+	MinimumNumberLength    uint32
+	DurationThreshold      time.Duration
+	ActionChainName        string
+	LastActionChainRunTime time.Time
 }
 
 // Actions ...

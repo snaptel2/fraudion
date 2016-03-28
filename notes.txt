@@ -65,3 +65,5 @@ err = filepath.Walk(cfgDir, func(path string, info os.FileInfo, err error) error
       cfgFiles, err := filepath.Glob(filepath.Join(path, "*.json"))
 
 */
+
+Cross Compile for CentOS5: sudo GOOS=linux GOARCH=386 GOPATH=/Users/andre/Dev/go go install
