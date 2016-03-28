@@ -10,6 +10,7 @@ Notes:
  - Regexp Help at https://gobyexample.com/regular-expressions & https://github.com/google/re2/wiki/Syntax
  - Type Asserting interface{} to map[string]string help at http://play.golang.org/p/ghaYeP3llx
  - Parse Duration help at https://golang.org/pkg/time/#ParseDuration
+ - MySQL Database actions with https://github.com/Go-SQL-Driver/MySQL/ over https://golang.org/pkg/database/sql/ (more information at http://go-database-sql.org/)
 
 Code Snippets:
 

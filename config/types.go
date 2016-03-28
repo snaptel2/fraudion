@@ -37,6 +37,7 @@ type triggerSimultaneousCalls struct {
 	CheckPeriod         time.Duration
 	HitThreshold        uint32
 	MinimumNumberLength uint32
+	ActionChainName     string
 }
 
 type triggerDangerousDestinations struct {
@@ -45,6 +46,7 @@ type triggerDangerousDestinations struct {
 	HitThreshold        uint32
 	MinimumNumberLength uint32
 	PrefixList          []string
+	ActionChainName     string
 }
 
 type triggerExpectedDestinations struct {
@@ -53,6 +55,7 @@ type triggerExpectedDestinations struct {
 	HitThreshold        uint32
 	MinimumNumberLength uint32
 	PrefixList          []string
+	ActionChainName     string
 }
 
 type triggerSmallCallDurations struct {
@@ -61,6 +64,7 @@ type triggerSmallCallDurations struct {
 	HitThreshold        uint32
 	MinimumNumberLength uint32
 	DurationThreshold   time.Duration
+	ActionChainName     string
 }
 
 // Actions ...
@@ -68,29 +72,27 @@ type Actions struct {
 	Email         actionEmail
 	Call          actionCall
 	HTTP          actionHTTP
-	LocalCommands map[string]string
+	LocalCommands actionLocalCommands
 }
 
 type actionEmail struct {
-	Enabled        bool
-	DefaultMessage string
+	Enabled  bool
+	Method   string
+	Username string
+	Password string
 }
 
 type actionCall struct {
-	Enabled        bool
-	DefaultMessage string
+	Enabled         bool
+	OriginateMethod string
 }
 
 type actionHTTP struct {
-	Enabled           bool
-	DefaultURL        string
-	DefaultMethod     string
-	DefaultParameters map[string]string
+	Enabled bool
 }
 
 type actionLocalCommands struct {
 	Enabled bool
-	List    map[string]string
 }
 
 // ActionChains ...
@@ -99,9 +101,8 @@ type ActionChains struct {
 }
 
 type actionChainAction struct {
-	Action   string
-	Contacts []string
-	Command  string
+	ActionName   string
+	ContactNames []string
 }
 
 // Contacts ...
@@ -133,9 +134,10 @@ type GeneralJSON struct {
 	MonitoredSoftware                     interface{}
 	CDRsSource                            interface{}
 	DefaultTriggerCheckPeriod             interface{}
+	DefaultHitThreshold                   interface{}
+	DefaultMinimumDestinationNumberLength interface{}
 	DefaultActionChainSleepPeriod         interface{}
 	DefaultActionChainRunCount            interface{}
-	DefaultMinimumDestinationNumberLength interface{}
 }
 
 // TriggersJSON ...

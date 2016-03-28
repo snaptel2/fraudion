@@ -15,58 +15,55 @@
 
   "Triggers": {
     "SimultaneousCalls": {
-      "Enabled": false,             // [Optional] If omitted we will assume "true" to disable, either omit the Trigger section or add enabled: false
+      "Enabled": true,             // [Optional] If omitted we will assume "true" to disable, either omit the Trigger section or add enabled: false
       "CheckPeriod": "5m",          // [Optional] Defaults to what's in "general" section
       "HitThreshold": 5,
+      "ActionChainName": "*default", // see more info at "simultaneous_calls" section
       "MinimumNumberLength": 5,
-      "ActionChainName": "*default" // [Optional] If omitted we will assume "*default"
     },
     "DangerousDestinations": {
-      "Enabled": false,             // see more info at "simultaneous_calls" section
-      "CheckPeriod": "5m",          // see more info at "simultaneous_calls" section
-      "HitThreshold": 5,            // see more info at "simultaneous_calls" section
-      "minimumNumberLength": 5,     // see more info at "simultaneous_calls" section
-      "PrefixList": ["351", "34"],
-      "ActionChainName": "*default" // see more info at "simultaneous_calls" section
-    },
-    "ExpectedDestinations": {
-      "Enabled": false,             // see more info at "simultaneous_calls" section
+      "Enabled": true,             // see more info at "simultaneous_calls" section
       "CheckPeriod": "5m",          // see more info at "simultaneous_calls" section
       "HitThreshold": 5,            // see more info at "simultaneous_calls" section
       "MinimumNumberLength": 5,     // see more info at "simultaneous_calls" section
-      "PrefixList": ["244"],
-      "ActionChainName": "*default" // see more info at "simultaneous_calls" section
+      "ActionChainName": "*default", // see more info at "simultaneous_calls" section
+      "PrefixList": ["351", "34"]
+    },
+    "ExpectedDestinations": {
+      "Enabled": true,             // see more info at "simultaneous_calls" section
+      "CheckPeriod": "5m",          // see more info at "simultaneous_calls" section
+      "HitThreshold": 5,            // see more info at "simultaneous_calls" section
+      "MinimumNumberLength": 5,     // see more info at "simultaneous_calls" section
+      "ActionChainName": "*default", // see more info at "simultaneous_calls" section
+      "PrefixList": ["244"]
     },
     "SmallDurationCalls": {
-      "Enabled": false,             // see more info at "simultaneous_calls" section
+      "Enabled": true,             // see more info at "simultaneous_calls" section
       "CheckPeriod": "5m",          // see more info at "simultaneous_calls" section
       "HitThreshold": 5,            // see more info at "simultaneous_calls" section
       "MinimumNumberLength": 5,
-      "DurationThreshold": "5s",
-      "ActionChainName": "*default" // see more info at "simultaneous_calls" section
+      "ActionChainName": "*default", // see more info at "simultaneous_calls" section
+      "DurationThreshold": "5s"
     }
   },
 
   "Actions": {
     "Email": {
       "Enabled": true, // [Optional] If you omit this we consider it "disabled"
-      "Method": "*gmail", // [Optional/Future] Do use the gmail package at https://github.com/SlyMarbo/gmail/
-      "Authenticated": true, // [Optional/Future] Future! Not needed for Method *gmail
-      "Server": "", // [Optional/Future] Not needed for Method *gmail
-      "Port": "", // [Optional/Future] Not needed for Method *gmail
+      "Method": "*gmail",
       "Username": "",
       "Password": ""
     },
     "HTTP": {
-      "Enabled": true
+      "Enabled": true // [Optional] If you omit this we consider it "disabled"
     },
     "Call": {
-      "Enabled": true,
-      "OriginateMethod": "*ami", // Can be overriden in Contacts
-      "OriginateParameters" : ""
+      "Enabled": true, // [Optional] If you omit this we consider it "disabled"
+      "OriginateMethod": "*ami",
+      //"OriginateParameters" [Future]
     },
     "LocalCommands": { // You can define your own command actions by giving them a name and a string that will be executed on the system! "*local_command x N"
-      "Enabled": true
+      "Enabled": true // [Optional] If you omit this we consider it "disabled"
     }
   },
 
@@ -75,8 +72,18 @@
       "Default": [
         {
           "Action": "*email",
-          "Contacts": ["contact_name", "contact_name2"], // TODO Optional Field? Because this does not apply to all actions!
-          "Command": "local_commands_1_k" // If action is local_commands
+          "Contacts": ["*contact_name", "*contact_name2"]
+        },
+        {
+          "Action": "*call",
+          "Contacts": ["*contact_name"]
+        }
+        // etc...
+      ],
+      "One": [
+        {
+          "Action": "*call",
+          "Contacts": ["*contact_name", "*contact_name2"]
         },
         // etc...
       ]
@@ -86,13 +93,26 @@
   "Contacts": {
     "List": {
       "ContactName": {
-        "for_actions": ["*action_name", "*action_name"], // The fields bellow used will depend on the values on this array.
-        "phone_number": "",
-        "email": "",
+        "forActions": ["*action_name", "*action_name"], // [Mandatory] The fields bellow used will depend on the values on this array.
+        "phoneNumber": "",
+        "emailAddress": "",
         "message": "",
-        "http_url": "",
-        "http_method": "",
-        "http_parameters": {
+        "HTTPURL": "",
+        "HTTPMethod": "",
+        "HTTPParameters": {
+          "http_post_parameters_1_k": "http_post_parameters_1_v",
+          "http_post_parameters_2_k": "http_post_parameters_2_v"
+          // etc...
+        }
+      },
+      "ContactName2": {
+        "forActions": ["*action_name", "*action_name"], // [Mandatory] The fields bellow used will depend on the values on this array.
+        "phoneNumber": "",
+        "emailAddress": "",
+        "message": "",
+        "HTTPURL": "",
+        "HTTPMethod": "",
+        "HTTPParameters": {
           "http_post_parameters_1_k": "http_post_parameters_1_v",
           "http_post_parameters_2_k": "http_post_parameters_2_v"
           // etc...

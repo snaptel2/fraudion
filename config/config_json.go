@@ -3,7 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
-	"reflect"
+	//"reflect"
 
 	"encoding/json"
 	"path/filepath"
@@ -20,13 +20,13 @@ const (
 func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir string) error {
 
 	// TODO: Remove this print!
-	fmt.Println("** JSON file parsing start.")
+	//fmt.Println("** JSON file parsing start.")
 
 	configFileName := constDefaultJSONConfigFilename
-	configFileFullPath := filepath.Join(configDir, constDefaultJSONConfigFilename)
+	//configFileFullPath := filepath.Join(configDir, constDefaultJSONConfigFilename)
 
 	// ** JSON config file to map[string] to Raw JSON
-	fmt.Printf("Trying to open the JSON config file \"%s\" at \"%s\" (fullpath: \"%s\").\n", configFileName, configDir, configFileFullPath)
+	//fmt.Printf("Trying to open the JSON config file \"%s\" at \"%s\" (fullpath: \"%s\").\n", configFileName, configDir, configFileFullPath)
 	configFileJSON, err := os.Open(filepath.Join(configDir, configFileName))
 	if err != nil {
 		customErrorMessage := fmt.Sprintf("There was an error opening the JSON config file (\"%s\")", err.Error())
@@ -57,8 +57,8 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 	}
 
 	// TODO: Remove these prints!
-	fmt.Print(reflect.TypeOf(configGeneralJSON))
-	fmt.Println(" ", configGeneralJSON)
+	//fmt.Print(reflect.TypeOf(configGeneralJSON))
+	//fmt.Println(" ", configGeneralJSON)
 
 	fraudionJSONConfig.General = *configGeneralJSON
 
@@ -75,8 +75,8 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 	}
 
 	// TODO: Remove these prints!
-	fmt.Print(reflect.TypeOf(configTriggersJSON))
-	fmt.Println(" ", configTriggersJSON)
+	//fmt.Print(reflect.TypeOf(configTriggersJSON))
+	//fmt.Println(" ", configTriggersJSON)
 
 	fraudionJSONConfig.Triggers = *configTriggersJSON
 
@@ -93,8 +93,8 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 	}
 
 	// TODO: Remove these prints!
-	fmt.Print(reflect.TypeOf(configActionsJSON))
-	fmt.Println(" ", configActionsJSON)
+	//fmt.Print(reflect.TypeOf(configActionsJSON))
+	//fmt.Println(" ", configActionsJSON)
 
 	fraudionJSONConfig.Actions = *configActionsJSON
 
@@ -111,8 +111,8 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 	}
 
 	// TODO: Remove these prints!
-	fmt.Print(reflect.TypeOf(configActionChainsJSON))
-	fmt.Println(" ", configActionChainsJSON)
+	//fmt.Print(reflect.TypeOf(configActionChainsJSON))
+	//fmt.Println(" ", configActionChainsJSON)
 
 	fraudionJSONConfig.ActionChains = *configActionChainsJSON
 
@@ -129,13 +129,13 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 	}
 
 	// TODO: Remove these prints!
-	fmt.Print(reflect.TypeOf(configContactsJSON))
-	fmt.Println(" ", configContactsJSON)
+	//fmt.Print(reflect.TypeOf(configContactsJSON))
+	//fmt.Println(" ", configContactsJSON)
 
 	fraudionJSONConfig.Contacts = *configContactsJSON
 
 	// TODO: Remove this print!
-	fmt.Println("** JSON file parsing end.")
+	//fmt.Println("** JSON file parsing end.")
 
 	return nil
 

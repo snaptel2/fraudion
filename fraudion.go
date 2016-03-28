@@ -1,20 +1,18 @@
 package main
 
 import (
+	"database/sql"
 	"flag"
 	"fmt"
 	"os"
 
 	"github.com/fraudion/config"
+	_ "github.com/go-sql-driver/mysql"
 )
 
 // Defines constants
 const (
 	constDefaultConfigDir = "examples/config" // TODO: This will probably need to be changed to something like "/usr/share/fraudion" when we aproach a more usable version!
-	/*MYSQL              = "mysql"
-	FREESWITCH         = "fs"
-	ASTERISK           = "ast_alone"
-	ELASTIX            = "ast_el"*/
 )
 
 // Defines expected CLI arguments/flags
@@ -37,6 +35,7 @@ func main() {
 	}
 
 	fmt.Println("** Parsed JSON:", ConfigsJSON)
+	fmt.Println()
 
 	configs := new(config.FraudionConfig)
 	err = configs.CheckJSONSanityAndLoadConfigs(ConfigsJSON)
@@ -44,10 +43,51 @@ func main() {
 		os.Exit(-1)
 	}
 
-	fmt.Println("** Configs:", configs)
+	fmt.Println("** Loaded Configs:", configs)
+	fmt.Println()
 
-	//fmt.Println()
-	//fmt.Println(config)
+	db, err := sql.Open("mysql", "root:@/test")
+	fmt.Println(db)
+	fmt.Println(err)
+
+	err = db.Ping() // Open doest not open a connection. This is the way to see if the server is available.
+	fmt.Println(err)
+
+	stmtOut, err := db.Prepare("SELECT * FROM test_table")
+	fmt.Println(err)
+	//stmtOut.Exec()
+
+	queryResult, err := stmtOut.Query()
+	fmt.Println(err)
+
+	test, _ := queryResult.Columns()
+	fmt.Println(test)
+
+	/*for i, v := range queryResult.Columns() {
+		fmt.Println(i)
+		fmt.Println(v)
+		fmt.Println(v)
+	}*/
+	/*mtIns, err := db.Prepare("INSERT INTO squareNum VALUES( ?, ? )") // ? = placeholder
+	  if err != nil {
+	      panic(err.Error()) // proper error handling instead of panic in your app
+	  }
+	  defer stmtIns.Close() // Close the statement when we leave main() / the program terminates
+
+	  // Prepare statement for reading data
+	  stmtOut, err := db.Prepare("SELECT squareNumber FROM squarenum WHERE number = ?")
+	  if err != nil {
+	      panic(err.Error()) // proper error handling instead of panic in your app
+	  }
+	  defer stmtOut.Close()
+
+	  // Insert square numbers for 0-24 in the database
+	  for i := 0; i < 25; i++ {
+	      _, err = stmtIns.Exec(i, (i * i)) // Insert tuples (i, i^2)
+	      if err != nil {
+	          panic(err.Error()) // proper error handling instead of panic in your app
+	      }
+	  }*/
 
 	/*fmt.Println("sadjaçidjfsdf", cfgGeneral.Monitored_software)
 	fmt.Println("sadjaçidjfsdf", supported_software)

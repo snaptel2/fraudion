@@ -16,8 +16,11 @@ const (
 )
 
 var (
-	constSupportedSoftware = []string{"*ast_elastix_2.3", "*ast_alone_1.8"}
-	constSupportCDRSources = []string{"*db_mysql"}
+	constSupportedSoftware               = []string{"*ast_elastix_2.3", "*ast_alone_1.8"}
+	constSupportedCDRSources             = []string{"*db_mysql"}
+	constSupportedEmailMethods           = []string{"*gmail"}
+	constSupportedCallOriginationMethods = []string{"*ami"}
+	constSupportedActions                = []string{"*email", "*call", "*http", "*localcommands"}
 )
 
 // CheckJSONSanityAndLoadConfigs ...
@@ -46,8 +49,8 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 	if err := errorOnIncorrectType(hasCorrectType, "General", "CDRsSource", "string", reflect.TypeOf(ConfigsJSON.General.CDRsSource)); err != nil {
 		return utils.DebugLogAndGetError(err.Error(), true)
 	}
-	found = utils.StringInStringsSlice(valueOfCDRsSource, constSupportCDRSources)
-	if err := errorOnIncorrectValue(!found, "General", "CDRsSource", fmt.Sprintf("One of: %s", constSupportCDRSources), valueOfCDRsSource); err != nil {
+	found = utils.StringInStringsSlice(valueOfCDRsSource, constSupportedCDRSources)
+	if err := errorOnIncorrectValue(!found, "General", "CDRsSource", fmt.Sprintf("One of: %s", constSupportedCDRSources), valueOfCDRsSource); err != nil {
 		return utils.DebugLogAndGetError(err.Error(), true)
 	}
 	fraudionConfig.General.CDRsSource = valueOfCDRsSource
@@ -57,7 +60,6 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 		return utils.DebugLogAndGetError(err.Error(), true)
 	}
 	valueOfDefaultTriggerCheckPeriod, hasCorrectType := ConfigsJSON.General.DefaultTriggerCheckPeriod.(string)
-	fmt.Println(valueOfDefaultTriggerCheckPeriod)
 	if err := errorOnIncorrectType(hasCorrectType, "General", "DefaultTriggerCheckPeriod", "string", reflect.TypeOf(ConfigsJSON.General.DefaultTriggerCheckPeriod)); err != nil {
 		return utils.DebugLogAndGetError(err.Error(), true)
 	}
@@ -76,10 +78,20 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 	fraudionConfig.General.DefaultTriggerCheckPeriod = durationValueOfDefaultTriggerCheckPeriod
 
 	// DefaultHitThreshold
-	// TODO !
+	if err := errorOnValueNotFound(ConfigsJSON.General.DefaultHitThreshold == nil, "General", "DefaultHitThreshold", "int", "\"nothing\""); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
+	}
+	valueOfDefaultHitThreshold, hasCorrectType := ConfigsJSON.General.DefaultHitThreshold.(float64)
+	if err := errorOnIncorrectType(hasCorrectType, "General", "DefaultHitThreshold", "int", reflect.TypeOf(ConfigsJSON.General.DefaultHitThreshold)); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
+	}
+	if err := errorOnIncorrectValue(valueOfDefaultHitThreshold < 0, "General", "DefaultHitThreshold", "Must be >= 0", strconv.FormatFloat(valueOfDefaultHitThreshold, 'f', 6, 64)); err != nil {
+		return utils.DebugLogAndGetError(err.Error(), true)
+	}
+	fraudionConfig.General.DefaultHitThreshold = uint32(valueOfDefaultHitThreshold)
 
 	// * DefaultMinimumDestinationNumberLength
-	if err := errorOnValueNotFound(ConfigsJSON.General.DefaultMinimumDestinationNumberLength == nil, "General", "DefaultActionChainRunCount", "string", "\"nothing\""); err != nil {
+	if err := errorOnValueNotFound(ConfigsJSON.General.DefaultMinimumDestinationNumberLength == nil, "General", "DefaultMinimumDestinationNumberLength", "string", "\"nothing\""); err != nil {
 		return utils.DebugLogAndGetError(err.Error(), true)
 	}
 	valueOfDefaultMinimumDestinationNumberLength, hasCorrectType := ConfigsJSON.General.DefaultMinimumDestinationNumberLength.(float64)
@@ -155,14 +167,14 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 			}
 			fraudionConfig.Triggers.SimultaneousCalls.CheckPeriod = durationValueOfCheckPeriod
 
-			valueHitThreshold, err := checkJSONSanityOfHitThresholdConfigs(fraudionConfig, mapOfTriggerSimultaneousCallsConfigJSON, "Simultaneous Calls")
+			valueHitThreshold, err := checkJSONSanityOfHitThresholdConfigs(fraudionConfig, mapOfTriggerSimultaneousCallsConfigJSON, "SimultaneousCalls")
 			if err != nil {
 				return utils.DebugLogAndGetError(err.Error(), true)
 			}
 			fraudionConfig.Triggers.SimultaneousCalls.HitThreshold = valueHitThreshold
 
 			// TODO This is optional. So if this is not found use the default!
-			valueMinimumNumberLength, err := checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig, mapOfTriggerSimultaneousCallsConfigJSON, "Simultaneous Calls")
+			valueMinimumNumberLength, err := checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig, mapOfTriggerSimultaneousCallsConfigJSON, "SimultaneousCalls")
 			if err != nil {
 				return utils.DebugLogAndGetError(err.Error(), true)
 			}
@@ -173,7 +185,6 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 	}
 
 	// * DangerousDestinations
-	fmt.Println(ConfigsJSON.Triggers.DangerousDestinations)
 	if err := errorOnValueNotFound(ConfigsJSON.Triggers.DangerousDestinations == nil, "Triggers", "DangerousDestinations", "map[string]interface{}", "\"nothing\""); err != nil {
 
 		utils.DebugLogAndGetError(err.Error(), true)
@@ -223,7 +234,6 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 	}
 
 	// * ExpectedDestinations
-	fmt.Println(ConfigsJSON.Triggers.ExpectedDestinations)
 	if err := errorOnValueNotFound(ConfigsJSON.Triggers.ExpectedDestinations == nil, "Triggers", "ExpectedDestinations", "map[string]interface{}", "\"nothing\""); err != nil {
 
 		utils.DebugLogAndGetError(err.Error(), true)
@@ -273,7 +283,6 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 	}
 
 	// * SmallDurationCalls
-	fmt.Println(ConfigsJSON.Triggers.SmallDurationCalls)
 	if err := errorOnValueNotFound(ConfigsJSON.Triggers.SmallDurationCalls == nil, "Triggers", "SmallDurationCalls", "map[string]interface{}", "\"nothing\""); err != nil {
 
 		utils.DebugLogAndGetError(err.Error(), true)
@@ -312,18 +321,18 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 			}
 			fraudionConfig.Triggers.SmallDurationCalls.MinimumNumberLength = valueMinimumNumberLength
 
-			if err := errorOnValueNotFound(!utils.StringKeyInMap("DurationThreshold", mapOfTriggerSmallDurationCallsConfigJSON), "Triggers", "SmallDurationCalls", "map[string]interface{}", "\"nothing\""); err != nil {
+			if err := errorOnValueNotFound(!utils.StringKeyInMap("DurationThreshold", mapOfTriggerSmallDurationCallsConfigJSON), "Triggers", "SmallDurationCalls/DurationThreshold", "map[string]interface{}", "\"nothing\""); err != nil {
 				// TODO If this trigger is enabled, this value should be mandatory!
 				utils.DebugLogAndGetError(err.Error(), true)
 			}
 
 			valueDurationString, hasCorrectType := mapOfTriggerSmallDurationCallsConfigJSON["DurationThreshold"].(string)
-			if err := errorOnIncorrectType(hasCorrectType, "SmallDurationCalls", "DurationThreshold", "time.Duration", reflect.TypeOf(mapOfTriggerSmallDurationCallsConfigJSON["DurationThreshold"])); err != nil {
+			if err := errorOnIncorrectType(hasCorrectType, "Triggers", "SmallDurationCalls/DurationThreshold", "time.Duration", reflect.TypeOf(mapOfTriggerSmallDurationCallsConfigJSON["DurationThreshold"])); err != nil {
 				return utils.DebugLogAndGetError(err.Error(), true)
 			}
 
 			valueDuration, errDuration := time.ParseDuration(valueDurationString)
-			if err := errorOnIncorrectValue(errDuration != nil, "Small Duration Calls", "duration_threshold", "Must be a valid duration", ""); err != nil {
+			if err := errorOnIncorrectValue(errDuration != nil, "Triggers", "SmallDurationCalls/DurationThreshold", "Must be a valid duration", ""); err != nil {
 				return utils.DebugLogAndGetError(err.Error(), true)
 			}
 
@@ -333,46 +342,240 @@ func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON 
 
 	}
 
-	/*
+	// ** Actions Section
+	// * Email
+	if err := errorOnValueNotFound(ConfigsJSON.Actions.Email == nil, "Actions", "Email", "map[string]interface{}", "\"nothing\""); err != nil {
 
-		// Actions Section
-		actionHTTPJSONConfig, actionIsPresent := JSONConfigs.Actions.HTTP.(map[string]interface{})
-		fmt.Println("**", actionHTTPJSONConfig)
-		fmt.Println(reflect.TypeOf(actionHTTPJSONConfig))
-		fmt.Println(actionIsPresent)
-		fmt.Println()
+		utils.DebugLogAndGetError(err.Error(), true)
+		fraudionConfig.Actions.Email.Enabled = false
 
-		valueDefaultMethod, hasCorrectType := actionHTTPJSONConfig["default_method"].(string)
-		fmt.Println(valueDefaultMethod)
-		fmt.Println(hasCorrectType)
-		valueDefaultURL, hasCorrectType := actionHTTPJSONConfig["default_url"].(string)
-		fmt.Println(valueDefaultURL)
-		fmt.Println(hasCorrectType)
+	} else {
 
-		// Doesn't work like this!
-		valueDefaultParameters2, hasCorrectType := actionHTTPJSONConfig["default_parameters"].(map[string]string)
-		//fmt.Println("**", reflect.ValueOf(actionHTTPJSONConfig["default_parameters"]).Interface())
-		fmt.Println("**", valueDefaultParameters2)
-		fmt.Println(reflect.TypeOf(valueDefaultParameters2))
-		fmt.Println(hasCorrectType)
-
-		// Works like this!
-		valueDefaultParameters, hasCorrectType := actionHTTPJSONConfig["default_parameters"].(map[string]interface{})
-		fmt.Println("**", reflect.ValueOf(actionHTTPJSONConfig["default_parameters"]).Interface())
-		fmt.Println(valueDefaultParameters)
-		fmt.Println(reflect.TypeOf(valueDefaultParameters))
-		fmt.Println(hasCorrectType)
-		for k := range valueDefaultParameters {
-			fmt.Println(k)
-			valueDefaultParameters, hasCorrectType := valueDefaultParameters[k].(string)
-			if !hasCorrectType {
-				fmt.Println("WHAAAAAAAAAAAAAAAAAAAAAAAT??")
-			}
-			fmt.Println(valueDefaultParameters)
-			fmt.Println(reflect.TypeOf(valueDefaultParameters))
+		mapOfActionEmail, hasCorrectType := ConfigsJSON.Actions.Email.(map[string]interface{})
+		if err := errorOnIncorrectType(hasCorrectType, "Actions", "Email", "map[string]interface{}", reflect.TypeOf(ConfigsJSON.Actions.Email)); err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
 		}
 
-	*/
+		valueEnabled, err := checkJSONSanityOfEnabledConfigs(mapOfActionEmail, "Email")
+		if err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+		fraudionConfig.Actions.Email.Enabled = valueEnabled
+
+		if valueEnabled {
+
+			// Method
+			if err := errorOnValueNotFound(!utils.StringKeyInMap("Method", mapOfActionEmail), "Actions", "Email/Method", "map[string]interface{}", "\"nothing\""); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			valueOfMethod, hasCorrectType := mapOfActionEmail["Method"].(string)
+			if err := errorOnIncorrectType(hasCorrectType, "Actions", "Email/Method", "string", reflect.TypeOf(mapOfActionEmail["Method"])); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			if err := errorOnIncorrectValue(!utils.StringInStringsSlice(valueOfMethod, constSupportedEmailMethods), "Actions", "Email/Method", fmt.Sprintf("One of: %s", constSupportedEmailMethods), valueOfMethod); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			fraudionConfig.Actions.Email.Method = valueOfMethod
+
+			// Username
+			if err := errorOnValueNotFound(!utils.StringKeyInMap("Username", mapOfActionEmail), "Actions", "Email/Username", "map[string]interface{}", "\"nothing\""); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			valueOfUsername, hasCorrectType := mapOfActionEmail["Username"].(string)
+			if err := errorOnIncorrectType(hasCorrectType, "Actions", "Email/Username", "string", reflect.TypeOf(mapOfActionEmail["Username"])); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			fraudionConfig.Actions.Email.Username = valueOfUsername
+
+			// Password
+			if err := errorOnValueNotFound(!utils.StringKeyInMap("Password", mapOfActionEmail), "Actions", "Email/Password", "map[string]interface{}", "\"nothing\""); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			valueOfPassword, hasCorrectType := mapOfActionEmail["Password"].(string)
+			if err := errorOnIncorrectType(hasCorrectType, "Actions", "Email/Password", "string", reflect.TypeOf(mapOfActionEmail["Password"])); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			fraudionConfig.Actions.Email.Password = valueOfPassword
+
+		}
+
+	}
+
+	// * HTTP
+	if err := errorOnValueNotFound(ConfigsJSON.Actions.HTTP == nil, "Actions", "HTTP", "map[string]interface{}", "\"nothing\""); err != nil {
+
+		utils.DebugLogAndGetError(err.Error(), true)
+		fraudionConfig.Actions.HTTP.Enabled = false
+
+	} else {
+
+		mapOfActionHTTP, hasCorrectType := ConfigsJSON.Actions.HTTP.(map[string]interface{})
+		if err := errorOnIncorrectType(hasCorrectType, "Actions", "HTTP", "map[string]interface{}", reflect.TypeOf(ConfigsJSON.Actions.HTTP)); err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+
+		valueEnabled, err := checkJSONSanityOfEnabledConfigs(mapOfActionHTTP, "HTTP")
+		if err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+		fraudionConfig.Actions.HTTP.Enabled = valueEnabled
+
+	}
+
+	// * Call
+	if err := errorOnValueNotFound(ConfigsJSON.Actions.Call == nil, "Actions", "Call", "map[string]interface{}", "\"nothing\""); err != nil {
+
+		utils.DebugLogAndGetError(err.Error(), true)
+		fraudionConfig.Actions.Call.Enabled = false
+
+	} else {
+
+		mapOfActionCall, hasCorrectType := ConfigsJSON.Actions.Call.(map[string]interface{})
+		if err := errorOnIncorrectType(hasCorrectType, "Actions", "Email", "map[string]interface{}", reflect.TypeOf(ConfigsJSON.Actions.Call)); err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+
+		valueEnabled, err := checkJSONSanityOfEnabledConfigs(mapOfActionCall, "Email")
+		if err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+		fraudionConfig.Actions.Call.Enabled = valueEnabled
+
+		if valueEnabled {
+
+			// OriginatedMethod [Mandatory]
+			if err := errorOnValueNotFound(!utils.StringKeyInMap("OriginateMethod", mapOfActionCall), "Actions", "Call", "map[string]interface{}", "\"nothing\""); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			valueOfOriginateMethod, hasCorrectType := mapOfActionCall["OriginateMethod"].(string)
+			if err := errorOnIncorrectType(hasCorrectType, "Actions", "Call/OriginatedMethod", "string", reflect.TypeOf(mapOfActionCall["Method"])); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			if err := errorOnIncorrectValue(!utils.StringInStringsSlice(valueOfOriginateMethod, constSupportedCallOriginationMethods), "Actions", "Call/Method", fmt.Sprintf("One of: %s", constSupportedCallOriginationMethods), valueOfOriginateMethod); err != nil {
+				return utils.DebugLogAndGetError(err.Error(), true)
+			}
+			fraudionConfig.Actions.Call.OriginateMethod = valueOfOriginateMethod
+
+		}
+
+	}
+
+	// * LocalCommands
+	if err := errorOnValueNotFound(ConfigsJSON.Actions.LocalCommands == nil, "Actions", "LocalCommands", "map[string]interface{}", "\"nothing\""); err != nil {
+
+		utils.DebugLogAndGetError(err.Error(), true)
+		fraudionConfig.Actions.LocalCommands.Enabled = false
+
+	} else {
+
+		mapOfActionLocalCommands, hasCorrectType := ConfigsJSON.Actions.LocalCommands.(map[string]interface{})
+		if err := errorOnIncorrectType(hasCorrectType, "Actions", "LocalCommands", "map[string]interface{}", reflect.TypeOf(ConfigsJSON.Actions.LocalCommands)); err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+
+		valueEnabled, err := checkJSONSanityOfEnabledConfigs(mapOfActionLocalCommands, "LocalCommands")
+		if err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+		fraudionConfig.Actions.LocalCommands.Enabled = valueEnabled
+
+	}
+
+	// ** ActionChains
+	// * List
+	if err := errorOnValueNotFound(ConfigsJSON.ActionChains.List == nil, "ActionChains", "List", "interface{}", "\"nothing\""); err != nil {
+
+		utils.DebugLogAndGetError(err.Error(), true)
+		fraudionConfig.ActionChains.List = nil // Returns empty map, no ActionChains
+
+	} else {
+
+		mapOfActionChainsList, hasCorrectType := ConfigsJSON.ActionChains.List.(map[string]interface{})
+		if err := errorOnIncorrectType(hasCorrectType, "ActionChains", "List", "map[string]interface{}", reflect.TypeOf(ConfigsJSON.ActionChains.List)); err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+
+		list := make(map[string][]actionChainAction)
+
+		for actionChainValueKey, actionChainValue := range mapOfActionChainsList {
+
+			var actionsList []actionChainAction
+
+			for _, actionValue := range actionChainValue.([]interface{}) {
+
+				// TODO Type assertions missing here!
+
+				action := new(actionChainAction)
+
+				mapOfActionValue := actionValue.(map[string]interface{})
+
+				action.ActionName = mapOfActionValue["Action"].(string)
+
+				var contactNames []string
+				for _, contactValue := range mapOfActionValue["Contacts"].([]interface{}) {
+					contactNames = append(contactNames, contactValue.(string))
+				}
+				action.ContactNames = contactNames
+
+				actionsList = append(actionsList, *action)
+
+			}
+
+			list[actionChainValueKey] = actionsList
+
+		}
+
+		fraudionConfig.ActionChains.List = list
+
+	}
+
+	// ** Contacts
+	// * List
+	if err := errorOnValueNotFound(ConfigsJSON.ActionChains.List == nil, "Contacts", "List", "interface{}", "\"nothing\""); err != nil {
+
+		utils.DebugLogAndGetError(err.Error(), true)
+		fraudionConfig.Contacts.List = nil // Returns empty map, no ActionChains
+
+	} else {
+
+		mapOfContactsList, hasCorrectType := ConfigsJSON.Contacts.List.(map[string]interface{})
+		if err := errorOnIncorrectType(hasCorrectType, "Contacts", "List", "map[string]interface{}", reflect.TypeOf(ConfigsJSON.Contacts.List)); err != nil {
+			return utils.DebugLogAndGetError(err.Error(), true)
+		}
+
+		list := make(map[string]contact)
+
+		for contactName, contactData := range mapOfContactsList {
+
+			// TODO Type assertions missing here!
+
+			var newContact contact
+
+			for contactDataKey, contactDataValue := range contactData.(map[string]interface{}) {
+
+				switch contactDataKey {
+
+				// TODO Other fields (cases for contactDataKey) missing here!
+
+				case "forActions":
+					var actionNames []string
+
+					for _, actionName := range contactDataValue.([]interface{}) {
+						actionNames = append(actionNames, actionName.(string))
+					}
+					newContact.ForActions = actionNames
+
+				}
+
+			}
+
+			list[contactName] = newContact
+
+		}
+
+		fraudionConfig.Contacts.List = list
+
+	}
 
 	return nil
 }
@@ -401,12 +604,12 @@ func errorOnValueNotFound(condition bool, sectionName string, valueNameOrPath st
 	return nil
 }
 
-func checkJSONSanityOfEnabledConfigs(simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (bool, error) {
+func checkJSONSanityOfEnabledConfigs(JSONConfig map[string]interface{}, sectionName string) (bool, error) {
 
-	if utils.StringKeyInMap("Enabled", simCallsTriggerJSONConfig) {
+	if utils.StringKeyInMap("Enabled", JSONConfig) {
 
-		value, hasCorrectType := simCallsTriggerJSONConfig["enabled"].(bool)
-		if err := errorOnIncorrectType(hasCorrectType, triggerName, "enabled", "boolean", reflect.TypeOf(simCallsTriggerJSONConfig["enabled"])); err != nil {
+		value, hasCorrectType := JSONConfig["Enabled"].(bool)
+		if err := errorOnIncorrectType(hasCorrectType, sectionName, "Enabled", "bool", reflect.TypeOf(JSONConfig["enabled"])); err != nil {
 			return false, err
 		}
 
@@ -415,9 +618,10 @@ func checkJSONSanityOfEnabledConfigs(simCallsTriggerJSONConfig map[string]interf
 	}
 
 	// TODO:LOG Log this to Syslog
-	fmt.Printf("WARNING: \"Enabled\" value for \"%s\" Trigger not found, assuming true\n", triggerName)
+	assume := false
+	fmt.Printf("WARNING: \"Enabled\" value for section \"%s\" not found, assuming %t\n", sectionName, assume)
 
-	return true, nil
+	return assume, nil
 
 }
 
@@ -445,7 +649,7 @@ func checkJSONSanityOfCheckPeriodConfigs(fraudionConfig *FraudionConfig, simCall
 	}
 
 	// TODO:LOG Log this to Syslog
-	fmt.Printf("WARNING: \"CheckPeriod\" value for \"%s\" Trigger not found, assuming %s\n", triggerName, fraudionConfig.General.DefaultTriggerCheckPeriod)
+	fmt.Printf("WARNING: \"CheckPeriod\" value for Trigger \"%s\" not found, assuming %s\n", triggerName, fraudionConfig.General.DefaultTriggerCheckPeriod)
 	return fraudionConfig.General.DefaultTriggerCheckPeriod, nil
 
 }
@@ -470,17 +674,17 @@ func checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig *FraudionConfig,
 	// This value is mandatory!
 
 	// TODO:LOG Log this to Syslog
-	fmt.Printf("WARNING: \"minimum_number_length\" value for \"%s\" Trigger not found, assuming %d\n", triggerName, fraudionConfig.General.DefaultMinimumDestinationNumberLength)
+	fmt.Printf("WARNING: \"MinimumNumberLength\" value for \"%s\" Trigger not found, assuming %d\n", triggerName, fraudionConfig.General.DefaultMinimumDestinationNumberLength)
 	return fraudionConfig.General.DefaultMinimumDestinationNumberLength, nil
 
 }
 
 func checkJSONSanityOfHitThresholdConfigs(fraudionConfig *FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (uint32, error) {
 
-	if utils.StringKeyInMap("hit_threshold", simCallsTriggerJSONConfig) {
+	if utils.StringKeyInMap("HitThreshold", simCallsTriggerJSONConfig) {
 
-		value, hasCorrectType := simCallsTriggerJSONConfig["hit_threshold"].(float64)
-		if err := errorOnIncorrectType(hasCorrectType, triggerName, "hit_threshold", "float64", reflect.TypeOf(simCallsTriggerJSONConfig["max_call_threshold"])); err != nil {
+		value, hasCorrectType := simCallsTriggerJSONConfig["HitThreshold"].(float64)
+		if err := errorOnIncorrectType(hasCorrectType, triggerName, "HitThreshold", "float64", reflect.TypeOf(simCallsTriggerJSONConfig["max_call_threshold"])); err != nil {
 			return 0, err
 		}
 
@@ -492,22 +696,19 @@ func checkJSONSanityOfHitThresholdConfigs(fraudionConfig *FraudionConfig, simCal
 
 	}
 
-	// This value is mandatory!
-	// TODO:LOG Log this to Syslog
-	fmt.Printf("ERROR: \"hit_threshold\" value for \"%s\" Trigger not found", triggerName)
-	return 0, fmt.Errorf("\"hit_threshold\" value for \"%s\" trigger not found", triggerName)
+	return 0, fmt.Errorf("\"HitThreshold\" value for Trigger \"%s\" not found", triggerName)
 
 }
 
 func checkJSONSanityOfPrefixListConfigs(fraudionConfig *FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string) ([]string, error) {
 
-	if utils.StringKeyInMap("prefix_list", simCallsTriggerJSONConfig) {
+	if utils.StringKeyInMap("PrefixList", simCallsTriggerJSONConfig) {
 
-		sliceOfInterface := simCallsTriggerJSONConfig["prefix_list"]
+		sliceOfInterface := simCallsTriggerJSONConfig["PrefixList"]
 
 		// WARNING: Just checks if it's a slice basically (of anything really because interface{}) (verification of the type of the items of the slice is done below)
 		valueInterfaceSlice, hasCorrectType := sliceOfInterface.([]interface{})
-		if err := errorOnIncorrectType(hasCorrectType, triggerName, "prefix_list", "[]string", reflect.TypeOf(sliceOfInterface)); err != nil {
+		if err := errorOnIncorrectType(hasCorrectType, triggerName, "PrefixList", "[]string", reflect.TypeOf(sliceOfInterface)); err != nil {
 			return *new([]string), err
 		}
 
@@ -517,16 +718,16 @@ func checkJSONSanityOfPrefixListConfigs(fraudionConfig *FraudionConfig, simCalls
 
 			// TODO This is not needed because the previous check catches this, because ints implement no interface? Don't know but it catches when the slice has ints...
 			valueOfSliceItem, hasCorrectType := sliceReflectValue.Index(i).Interface().(string)
-			if err := errorOnIncorrectType(hasCorrectType, triggerName, "prefix_list", "[]", reflect.TypeOf(sliceOfInterface)); err != nil {
+			if err := errorOnIncorrectType(hasCorrectType, triggerName, "PrefixList", "[]", reflect.TypeOf(sliceOfInterface)); err != nil {
 				return *new([]string), err
 			}
 
 			isNumericString, errCheckingValue := regexp.MatchString("^[0-9]+$", valueOfSliceItem)
 			if errCheckingValue != nil {
-				fmt.Printf("ERROR: Internal: There seems to be an issue with checking if the \"prefix_list\" string values are numeric\n")
+				//fmt.Printf("ERROR: Internal: There seems to be an issue with checking if the \"prefix_list\" string values are numeric\n")
 				return *new([]string), fmt.Errorf("internal: there seems to be an issue with checking if the \"prefix_list\" string values are numeric")
 			}
-			if err := errorOnIncorrectValue(!isNumericString, triggerName, "prefix_list", "Values must be Numeric Strings", valueOfSliceItem); err != nil {
+			if err := errorOnIncorrectValue(!isNumericString, triggerName, "PrefixList", "Values must be Numeric Strings", valueOfSliceItem); err != nil {
 				return *new([]string), err
 			}
 
@@ -537,8 +738,6 @@ func checkJSONSanityOfPrefixListConfigs(fraudionConfig *FraudionConfig, simCalls
 
 	}
 
-	// TODO:LOG Log this to Syslog
-	fmt.Printf("ERROR: \"prefix_list\" value for \"%s\" Trigger not found\n", triggerName)
-	return *new([]string), fmt.Errorf("\"prefix_list\" value for \"%s\" not found", triggerName)
+	return *new([]string), fmt.Errorf("\"PrefixList\" value for Trigger \"%s\" not found", triggerName)
 
 }
