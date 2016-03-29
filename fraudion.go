@@ -22,16 +22,18 @@ const (
 
 // Defines expected CLI arguments/flags
 var (
-	cliConfigDir = flag.String("configdir", constDefaultConfigDir, "<help message for 'config_dir'>")
+	cliConfigDir = flag.String("configdir", constDefaultConfigDir, "<help message for 'configdir'>")
+	cliTest      = flag.String("test", "", "<help message for 'test'>")
+	cliDBPass    = flag.String("dbpass", "", "<help message for 'dbpass'>")
 )
 
 // Starts here!
 func main() {
 
-	fmt.Println()
 	fmt.Println("Starting...")
 
 	fmt.Println("Parsing CLI parameters...")
+	flag.Parse()
 
 	ConfigsJSON := new(config.FraudionConfigJSON)
 	err := ConfigsJSON.LoadConfigFromJSONFile(*cliConfigDir)
@@ -51,7 +53,15 @@ func main() {
 	fmt.Println("** Loaded Configs:", configs)
 	fmt.Println()
 
-	db, err := sql.Open("mysql", "root:@tcp(localhost:3306)/asteriskcdrdb")
+	var dbstring string
+	if *cliDBPass == "" {
+		dbstring = fmt.Sprintf("root:@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1")
+	} else {
+		dbstring = fmt.Sprintf("root:%s@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1", *cliDBPass)
+	}
+
+	//dbstring := fmt.Sprintf("root:%s@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1", dbpass)
+	db, err := sql.Open("mysql", dbstring)
 	//db, err := sql.Open("mysql", "root:@/test")
 	fmt.Println(db)
 	fmt.Println(err)

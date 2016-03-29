@@ -11,6 +11,8 @@ Notes:
  - Type Asserting interface{} to map[string]string help at http://play.golang.org/p/ghaYeP3llx
  - Parse Duration help at https://golang.org/pkg/time/#ParseDuration
  - MySQL Database actions with https://github.com/Go-SQL-Driver/MySQL/ over https://golang.org/pkg/database/sql/ (more information at http://go-database-sql.org/)
+ - Please see Unmarshaling better, it can simplify configuration import to structs
+ - For system commands https://golang.org/pkg/os/exec/
 
 Code Snippets:
 
@@ -67,3 +69,27 @@ err = filepath.Walk(cfgDir, func(path string, info os.FileInfo, err error) error
 */
 
 Cross Compile for CentOS5: sudo GOOS=linux GOARCH=386 GOPATH=/Users/andre/Dev/go go install
+
+
+/*
+
+CDR Fields (Elastix 2.3 / Asterisk 1.8):
+
+fmt.Println(calldate,
+  clid,
+  src,
+  dst,
+  //dcontext,
+  //channel,
+  //dstchannel,
+  //lastapp,
+  //lastdata,
+  duration,
+  billsec,
+  disposition,
+  //amaflags,
+  //accountcode,
+  //uniqueid,
+  //userfield
+
+)*/

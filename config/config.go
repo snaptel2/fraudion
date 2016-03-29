@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	constMinimumTriggerCheckPeriod     = "5m"
+	constMinimumTriggerCheckPeriod     = "1m"
 	constMaximumActionChainSleepPeriod = "5m"
 )
 

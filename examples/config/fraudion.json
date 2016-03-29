@@ -23,7 +23,7 @@
     },
     "DangerousDestinations": {
       "Enabled": true,                // See description on the SimultaneousCalls sub section
-      "CheckPeriod": "5m",
+      "CheckPeriod": "1m",
       "HitThreshold": 5,
       "MinimumNumberLength": 5,
       "ActionChainName": "*default",
