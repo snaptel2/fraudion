@@ -28,7 +28,9 @@
       "MinimumNumberLength": 5,
       "ActionChainName": "*default",
       //"ConsiderCDRsFromLast": "5d",
-      "PrefixList": ["351", "244", "91", "53"]
+      "PrefixList": ["351", "244", "91", "53", "256", "48"], // [Mandatory, can be empty but duuh!] The trigger searches for numbers containing the prefixes in this list, according to MatchRegex, on the softswitch "dial string" (e.g. SIP/trunk1/354123123123,300,w in Asterisk/Elastix (lastapp == Dial & lastdata field))
+      //"MatchRegex": "/([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}", // [Future] The trigger will use this as explained above, you use __prefix__ to specify where the prefix values should go
+      //"IgnoreRegex": "[0-9]{9}", // [Future] This will ignore numbers with 9 digits (e.g. Portugal national numbering format) + Ignores numbers with length < MinimumNumberLength, so this should eliminate national special services numbers (e.g. 911, etc)
     },
     "ExpectedDestinations": {
       "Enabled": true,                // See description on the SimultaneousCalls sub section

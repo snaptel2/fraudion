@@ -2,58 +2,63 @@ package triggers
 
 import (
 	"fmt"
-	//"log"
 	"regexp"
 	"strconv"
+	"strings"
 	"time"
 
 	"database/sql"
-	//"net/smtp"
 	//"os/exec"
 
-	//"github.com/SlyMarbo/gmail"
 	"github.com/fraudion/config"
 	"github.com/fraudion/utils"
+	//"github.com/SlyMarbo/gmail"
 )
 
 // DangerousDestinationsRun ...
 func DangerousDestinationsRun(configs *config.FraudionConfig, db *sql.DB) {
 
-	fmt.Println("Starting Trigger, \"DangerousDestinations\"")
+	fmt.Println("Starting Trigger, \"DangerousDestinations\"...")
 
 	triggerConfigs := configs.Triggers.DangerousDestinations
 
 	ticker := time.NewTicker(triggerConfigs.CheckPeriod)
-	for t := range ticker.C {
+	for executionTime := range ticker.C {
 
-		fmt.Println("DangerousDestinations executed at", t)
+		fmt.Println("DangerousDestinations Trigger executed at", executionTime)
 
-		err := db.Ping() // Open does not "open" a connection. This is the way to see if the server is available.
+		// TODO: db.Open() does not "open" a connection just returns a "pointer". db.Ping() is a way to see if the server is available. Should we try to find a way to close the connection between "ticks"?
+		err := db.Ping()
 		if err != nil {
-			utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to \"Open\" a connection to the CDRs database (%s)", err.Error()), false)
+			utils.DebugLogAndGetError(fmt.Sprintf("Something happened while checking the availability of the database connection to the CDRs (%s)", err.Error()), false)
 		} else {
 
 			// TODO: Consider separating hits that start with the prefix and that have the prefix inside (there could be matches inside that do not correspond with a call to the prefix)
 			// TODO: Also consider having configurable trunk selection prefixes to which this will add the prefixes in the list and consider that as the dialled number (this is to detect trunk selection tries that could match)
 			hits := make(map[string]uint32)
+			//hitsIgnored := make(map[string]uint32)
 			for _, prefix := range triggerConfigs.PrefixList {
 				hits[prefix] = uint32(0)
 			}
+			hitValues := []string{}
+			//hitedValuesIgnored := []string{}
 
 			// TODO: The interval should come from the configs? That's what the commented ConsiderCDRsFromLast field would be for
 			var ConsiderCDRsFromLast time.Duration
-			var ConsiderCDRsFromLastString = "30"
+			var ConsiderCDRsFromLastString = "30" // NOTE: Number of days if duration rune is missing (with rune would be something like "5d")
 
 			numberOfDays, err2 := strconv.ParseInt(ConsiderCDRsFromLastString, 0, 32)
-			if err2 != nil {
-				// Assume it's a Parseable Duration!
+			if err2 != nil { // Assume it's a Parseable Duration!
 				ConsiderCDRsFromLast, _ = time.ParseDuration(ConsiderCDRsFromLastString)
-			} else {
-				// Assume it's a Number of Days
+			} else { // Assume it's a Number of Days
 				ConsiderCDRsFromLast, _ = time.ParseDuration(fmt.Sprintf("%vh", numberOfDays*24))
 			}
-			fmt.Println(uint32(ConsiderCDRsFromLast.Hours()))
 
+			// TODO: Remove this prints!
+			//fmt.Println(uint32(ConsiderCDRsFromLast.Hours()))
+
+			// TODO: Maybe we should consider that we only check from the program startup time or that time - a couple of hours/days, this is because if we have a detected attack we can restart the service without having it fire actions, or else having a way of saying from what time we should start considering and we can reset that time in case of an attack
+			// TODO: From here on what is done is Elastix2.3 specific, where the tests were made, so we'll have to add some conditions to check configured softswitch
 			rows, err := db.Query(fmt.Sprintf("SELECT * FROM cdr WHERE calldate >= DATE_SUB(CURDATE(), INTERVAL %v HOUR) ORDER BY calldate DESC;", uint32(ConsiderCDRsFromLast.Hours())))
 			if err != nil {
 				utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to Query the CDRs database (%s)", err.Error()), false)
@@ -95,26 +100,25 @@ func DangerousDestinationsRun(configs *config.FraudionConfig, db *sql.DB) {
 						&uniqueid,
 						&userfield)
 
-					/*
-						fmt.Println(calldate,
-							clid,
-							src,
-							dst,
-							//dcontext,
-							//channel,
-							//dstchannel,
-							//lastapp,
-							//lastdata,
-							duration,
-							billsec,
-							disposition,
-							//amaflags,
-							//accountcode,
-							//uniqueid,
-							//userfield
+					// TODO: Remove this prints!
+					/*fmt.Println(calldate,
+						clid,
+						src,
+						dst,
+						//dcontext,
+						//channel,
+						//dstchannel,
+						lastapp,
+						lastdata,
+						duration,
+						billsec,
+						disposition,
+						//amaflags,
+						//accountcode,
+						//uniqueid,
+						//userfield
 
-						)
-					*/
+					)*/
 
 					if err != nil {
 						utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to get the CDR data (%s)", err.Error()), false)
@@ -124,13 +128,35 @@ func DangerousDestinationsRun(configs *config.FraudionConfig, db *sql.DB) {
 
 							for _, prefix := range triggerConfigs.PrefixList {
 
-								found, err := regexp.MatchString(fmt.Sprintf("00%s", prefix), dst)
+								// TODO: Do we have to assert "DefaultMinimumDestinationNumberLength" of the number part in last data?
+
+								// TODO: Maybe the "matchStringWithTag" should come from configs also? Also being able to add several?
+								matchStringWithTag := "/([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}"
+								matchString := strings.Replace(matchStringWithTag, "__prefix__", prefix, 1)
+								foundMatch, err := regexp.MatchString(matchString, lastdata)
+
+								// TODO: Remove this prints!
+								fmt.Println("Found:", matchString)
+
 								if err != nil {
-									utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to match a Prefix with regexp (%s)", err.Error()), false)
+									utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to match (found) a Prefix with regexp (%s)", err.Error()), false)
 								}
 
-								if found == true {
+								// TODO: Maybe the "matchStringWithTag" should come from configs also? Also being able to add several?
+								matchStringWithTag = "/[0-9]{9}" // NOTE: Ignores any number of 9 digits afther the dial string /
+								matchString = strings.Replace(matchStringWithTag, "__prefix__", prefix, 1)
+								foundIgnore, err := regexp.MatchString(matchString, lastdata)
+
+								// TODO: Remove this prints!
+								fmt.Println("Ignore:", matchString)
+
+								if err != nil {
+									utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to match (ignore) a Prefix with regexp (%s)", err.Error()), false)
+								}
+
+								if foundMatch == true && foundIgnore == false && lastapp == "Dial" {
 									hits[prefix] = hits[prefix] + 1
+									hitValues = append(hitValues, dst)
 								}
 
 							}
@@ -183,9 +209,11 @@ func DangerousDestinationsRun(configs *config.FraudionConfig, db *sql.DB) {
 
 			}
 
+			// TODO: Remove this prints!
 			fmt.Println(hits)
+			fmt.Println(hitValues)
 
-			defer db.Close()
+			// TODO: Should we, and if so how, close the db connection between ticks? db.Close()
 
 		}
 
