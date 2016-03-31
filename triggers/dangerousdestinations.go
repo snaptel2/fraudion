@@ -10,8 +10,8 @@ import (
 	"database/sql"
 	//"os/exec"
 
-	"github.com/fraudion/config"
-	"github.com/fraudion/utils"
+	"github.com/andmar/fraudion/config"
+	"github.com/andmar/fraudion/utils"
 	//"github.com/SlyMarbo/gmail"
 )
 

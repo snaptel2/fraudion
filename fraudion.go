@@ -8,9 +8,9 @@ import (
 
 	"database/sql"
 
-	"github.com/fraudion/config"
-	"github.com/fraudion/interfaces/softswitches"
-	"github.com/fraudion/triggers"
+	"github.com/andmar/fraudion/config"
+	"github.com/andmar/fraudion/interfaces/softswitches"
+	"github.com/andmar/fraudion/triggers"
 
 	_ "github.com/go-sql-driver/mysql"
 )

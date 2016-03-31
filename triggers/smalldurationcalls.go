@@ -6,7 +6,7 @@ import (
 
 	"database/sql"
 
-	"github.com/fraudion/config"
+	"github.com/andmar/fraudion/config"
 )
 
 // SmallDurationCallsRun ...

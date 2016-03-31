@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 
 	"github.com/DisposaBoy/JsonConfigReader"
-	"github.com/fraudion/utils"
+	"github.com/andmar/fraudion/utils"
 )
 
 const (

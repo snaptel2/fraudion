@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/fraudion/utils"
+	"github.com/andmar/fraudion/utils"
 )
 
 const (

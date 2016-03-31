@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/fraudion/config"
-	"github.com/fraudion/interfaces/softswitches"
+	"github.com/andmar/fraudion/config"
+	"github.com/andmar/fraudion/interfaces/softswitches"
 )
 
 // SimultaneousCallsRun ...
