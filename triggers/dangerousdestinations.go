@@ -154,7 +154,7 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 
 							// TODO: Maybe the "matchStringWithTag" should come from configs also? Also being able to add several?
 							//matchStringWithTag := "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}"
-							matchStringWithTag := "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}"
+							matchStringWithTag := configsTrigger.MatchRegex
 							matchString := strings.Replace(matchStringWithTag, "__prefix__", prefix, 1)
 							foundMatch, err := regexp.MatchString(matchString, lastdata)
 
@@ -163,7 +163,8 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 							}
 
 							// TODO: Maybe the "matchStringWithTag" should come from configs also? Also being able to add several?
-							matchStringWithTag = "[92][0-9]{8}" // NOTE: Ignores any number of 9 digits that starts with 9 or 2
+							//matchStringWithTag = "[92][0-9]{8}" // NOTE: Ignores any number of 9 digits that starts with 9 or 2
+							matchStringWithTag = configsTrigger.IgnoreRegex
 							matchString = strings.Replace(matchStringWithTag, "__prefix__", prefix, 1)
 							foundIgnore, err := regexp.MatchString(matchString, lastdata)
 
