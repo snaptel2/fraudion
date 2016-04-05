@@ -12,6 +12,7 @@ const (
 // StringInStringsSlice ...
 func StringInStringsSlice(str string, list []string) bool {
 	for _, v := range list {
+		fmt.Println(v, str)
 		if v == str {
 			return true
 		}
@@ -32,12 +33,12 @@ func StringKeyInMap(theKey string, theMap map[string]interface{}) bool {
 // DebugLogAndGetError ...
 func DebugLogAndGetError(errorMessage string, getError bool) error {
 
-	customErrorMessage := fmt.Sprintf("ERROR: %s :(\n", errorMessage)
+	customErrorMessage := fmt.Sprintf("ERROR: %s :(", errorMessage)
 
 	// TODO Log this to Syslog
 
 	if DEBUG {
-		fmt.Printf(customErrorMessage)
+		fmt.Printf("%s\n", customErrorMessage)
 	}
 
 	if getError {

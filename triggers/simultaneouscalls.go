@@ -9,13 +9,13 @@ import (
 )
 
 // SimultaneousCallsRun ...
-func SimultaneousCallsRun(configs *config.FraudionConfig, softswitch softswitches.Softswitch) {
+func SimultaneousCallsRun(configs *config.FraudionConfig2, softswitch softswitches.Softswitch) {
 
 	fmt.Println("Starting Trigger, \"SimultaneousCalls\"")
 
 	triggerConfigs := configs.Triggers.SimultaneousCalls
 
-	ticker := time.NewTicker(triggerConfigs.CheckPeriod)
+	ticker := time.NewTicker(triggerConfigs.ExecuteInterval)
 
 	for t := range ticker.C {
 

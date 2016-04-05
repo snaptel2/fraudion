@@ -6,11 +6,11 @@ import (
 	"os"
 	"time"
 
-	//"database/sql"
+	"database/sql"
 
 	"github.com/andmar/fraudion/config"
 	//"github.com/andmar/fraudion/interfaces/softswitches"
-	//"github.com/andmar/fraudion/triggers"
+	"github.com/andmar/fraudion/triggers"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -32,67 +32,60 @@ var (
 func main() {
 
 	fmt.Println("Starting...")
-	//startUpTime := time.Now()
+	startUpTime := time.Now()
 
 	fmt.Println("Parsing CLI parameters...")
 	flag.Parse()
 
-	ConfigsJSON := new(config.FraudionConfigJSON2)
-	err := ConfigsJSON.LoadConfigFromJSONFile2(*argCliConfigDir)
+	configsJSON := new(config.FraudionConfigJSON2)
+	err := configsJSON.LoadConfigFromJSONFile2(*argCliConfigDir)
 	if err != nil {
-		fmt.Printf("There was an error (%s) parsing the Fraudion configuration file\n", err)
+		fmt.Printf("There was an error (%s) parsing the Fraudion JSON configuration file\n", err)
 		os.Exit(-1)
 	}
 
-	fmt.Println("** Parsed JSON:", ConfigsJSON)
-	fmt.Println()
+	fmt.Println("** Parsed Configs:", configsJSON)
 
-	os.Exit(-1)
+	configs := new(config.FraudionConfig2)
+	err = configs.ValidateAndLoadConfigs2(configsJSON, false)
+	if err != nil {
+		fmt.Printf("There was an error (%s) validating/loading the Fraudion configuration\n", err)
+		os.Exit(-1)
+	}
 
-	/*
+	fmt.Println("** Loaded Configs:", configs)
 
-		configs := new(config.FraudionConfig)
-		err = configs.CheckJSONSanityAndLoadConfigs(ConfigsJSON)
-		if err != nil {
-			fmt.Printf("There was an error (%s) loading the Fraudion configuration\n", err)
-			os.Exit(-1)
-		}
+	fmt.Println("Connecting to the CDRs Database...")
+	// TODO: This database connection is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
+	// TODO: The information (user, password) should come from somewhere on the configs also...
+	var dbstring string
+	if *argCliDBPass == "" {
+		dbstring = fmt.Sprintf("root:@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1")
+	} else {
+		dbstring = fmt.Sprintf("root:%s@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1", *argCliDBPass)
+	}
+	db, err := sql.Open("mysql", dbstring)
+	if err != nil {
+		fmt.Printf("There was an error (%s) trying to open a connection to the database\n", err)
+		os.Exit(-1)
+	}
 
-		fmt.Println("** Loaded Configs:", configs)
-		fmt.Println()
+	// Launch Triggers!
+	fmt.Println("Launching enabled triggers...")
+	/*if configs.Triggers.SimultaneousCalls.Enabled == true {
+		go triggers.SimultaneousCallsRun(configs, new(softswitches.Asterisk1_8))
+	}*/
+	if configs.Triggers.DangerousDestinations.Enabled == true {
+		go triggers.DangerousDestinationsRun(&startUpTime, configs, db)
+	}
 
-		var dbstring string
-		// TODO: This database connection is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
-		if *argCliDBPass == "" {
-			dbstring = fmt.Sprintf("root:@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1")
-		} else {
-			dbstring = fmt.Sprintf("root:%s@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1", *argCliDBPass)
-		}
+	/*if configs.Triggers.ExpectedDestinations.Enabled == true {
+		go triggers.ExpectedDestinationsRun(configs, db)
+	}
 
-		db, err := sql.Open("mysql", dbstring)
-		if err != nil {
-			errorMessage := "There was an error (%s) trying to open a connection to the database\n"
-			fmt.Printf(errorMessage)
-			os.Exit(-1)
-		}
-
-		// Launch Triggers!
-		if configs.Triggers.SimultaneousCalls.Enabled == true {
-			go triggers.SimultaneousCallsRun(configs, new(softswitches.Asterisk1_8))
-		}
-		if configs.Triggers.DangerousDestinations.Enabled == true {
-			go triggers.DangerousDestinationsRun(startUpTime, configs, db)
-		}
-
-		if configs.Triggers.ExpectedDestinations.Enabled == true {
-			go triggers.ExpectedDestinationsRun(configs, db)
-		}
-
-		if configs.Triggers.SmallDurationCalls.Enabled == true {
-			go triggers.SmallDurationCallsRun(configs, db)
-		}
-
-	*/
+	if configs.Triggers.SmallDurationCalls.Enabled == true {
+		go triggers.SmallDurationCallsRun(configs, db)
+	}*/
 
 	// Sleep!
 	for {

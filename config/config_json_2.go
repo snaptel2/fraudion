@@ -25,7 +25,7 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 	// ** JSON config file to map[string] to Raw JSON
 	JSONconfigFile, err := os.Open(filepath.Join(configDir, configFileName))
 	if err != nil {
-		customErrorMessage := fmt.Sprintf("There was an error opening the JSON config file (\"%s\")", err.Error())
+		customErrorMessage := fmt.Sprintf("There was an error (%s)opening the JSON config file", err.Error())
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 	defer JSONconfigFile.Close()
@@ -35,7 +35,7 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 
 	err = json.NewDecoder(JSONConfigFileReader).Decode(&RawJSON) // NOTE: Reads the JSON file to JSONConfigReader as a map[string]<Raw JSON that has to be decoded further!>
 	if err != nil {
-		customErrorMessage := fmt.Sprintf("There was an error doing the initial parsing of the JSON config file (\"%s\")", err.Error())
+		customErrorMessage := fmt.Sprintf("There was an error (%s) doing the initial parsing of the JSON config file", err.Error())
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
@@ -49,7 +49,7 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 
 	configGeneralJSON := new(GeneralJSON2)
 	if err := json.Unmarshal(*rawGeneralJSON, configGeneralJSON); err != nil {
-		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"%s\" section in config JSON", sectionName)
+		customErrorMessage := fmt.Sprintf("Could not (%s) Unmarshal \"%s\" section in config JSON", err, sectionName)
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
@@ -123,8 +123,6 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 
 	fraudionJSONConfig.DataGroups = *configDataGroupsJSON
 	fmt.Println("Data Groups:", configDataGroupsJSON)
-
-	fmt.Println("All Aboard:", fraudionJSONConfig)
 
 	return nil
 

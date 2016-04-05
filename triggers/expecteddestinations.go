@@ -10,13 +10,13 @@ import (
 )
 
 // ExpectedDestinationsRun ...
-func ExpectedDestinationsRun(configs *config.FraudionConfig, db *sql.DB) {
+func ExpectedDestinationsRun(configs *config.FraudionConfig2, db *sql.DB) {
 
 	fmt.Println("Starting Trigger, \"ExpectedDestinations\"")
 
 	triggerConfigs := configs.Triggers.ExpectedDestinations
 
-	ticker := time.NewTicker(triggerConfigs.CheckPeriod)
+	ticker := time.NewTicker(triggerConfigs.ExecuteInterval)
 
 	for t := range ticker.C {
 

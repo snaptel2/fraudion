@@ -10,13 +10,13 @@ import (
 )
 
 // SmallDurationCallsRun ...
-func SmallDurationCallsRun(configs *config.FraudionConfig, db *sql.DB) {
+func SmallDurationCallsRun(configs *config.FraudionConfig2, db *sql.DB) {
 
 	fmt.Println("Starting Trigger, \"SmallDurationCalls\"")
 
 	triggerConfigs := configs.Triggers.SmallDurationCalls
 
-	ticker := time.NewTicker(triggerConfigs.CheckPeriod)
+	ticker := time.NewTicker(triggerConfigs.ExecuteInterval)
 
 	for t := range ticker.C {
 

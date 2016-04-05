@@ -9,7 +9,7 @@ import (
 // FraudionConfig2 ...
 type FraudionConfig2 struct {
 	General      General2
-	Triggers     Triggers
+	Triggers     Triggers2
 	Actions      Actions2
 	ActionChains ActionChains2
 	DataGroups   DataGroups2
@@ -19,7 +19,7 @@ type FraudionConfig2 struct {
 type General2 struct {
 	MonitoredSoftware                     string
 	CDRsSource                            string
-	DefaultTriggerCheckPeriod             time.Duration
+	DefaultTriggerExecuteInterval         time.Duration
 	DefaultHitThreshold                   uint32
 	DefaultMinimumDestinationNumberLength uint32
 	DefaultActionChainHoldoffPeriod       time.Duration
@@ -36,7 +36,7 @@ type Triggers2 struct {
 
 type triggerSimultaneousCalls2 struct {
 	Enabled                bool
-	CheckPeriod            time.Duration
+	ExecuteInterval        time.Duration
 	HitThreshold           uint32
 	MinimumNumberLength    uint32
 	ActionChainName        string
@@ -45,30 +45,37 @@ type triggerSimultaneousCalls2 struct {
 
 type triggerDangerousDestinations2 struct {
 	Enabled                bool
-	CheckPeriod            time.Duration
+	ExecuteInterval        time.Duration
 	HitThreshold           uint32
 	MinimumNumberLength    uint32
-	PrefixList             []string
 	ActionChainName        string
+	ConsiderCDRsFromLast   string
+	PrefixList             []string
+	MatchRegex             string
+	IgnoreRegex            string
 	LastActionChainRunTime time.Time
 }
 
 type triggerExpectedDestinations2 struct {
 	Enabled                bool
-	CheckPeriod            time.Duration
+	ExecuteInterval        time.Duration
 	HitThreshold           uint32
 	MinimumNumberLength    uint32
-	PrefixList             []string
 	ActionChainName        string
+	ConsiderCDRsFromLast   string
+	PrefixList             []string
+	MatchRegex             string
+	IgnoreRegex            string
 	LastActionChainRunTime time.Time
 }
 
 type triggerSmallCallDurations2 struct {
 	Enabled                bool
-	CheckPeriod            time.Duration
+	ExecuteInterval        time.Duration
 	HitThreshold           uint32
 	MinimumNumberLength    uint32
 	ActionChainName        string
+	ConsiderCDRsFromLast   string
 	DurationThreshold      time.Duration
 	LastActionChainRunTime time.Time
 }
@@ -106,8 +113,8 @@ type ActionChains2 struct {
 }
 
 type actionChainAction2 struct {
-	ActionName     string
-	DataGroupNames []string
+	ActionName     string   `json:"action"`
+	DataGroupNames []string `json:"data_groups"`
 }
 
 // DataGroups2 ...
@@ -117,14 +124,14 @@ type DataGroups2 struct {
 
 // DataGroup2 ...
 type DataGroup2 struct {
-	ForActions       []string // TODO: Maybe this could serve to validate which of the fields bellow should be confirmed to exist
-	PhoneNumber      string
-	EmailAddress     string
-	HTTPURL          string
-	HTTPMethod       string
-	HTTPParameters   map[string]string
-	CommandName      string
-	CommandArguments string
+	ForActions       []string          `json:"for_actions"` // TODO: Maybe this could serve to validate which of the fields bellow should be confirmed to exist
+	PhoneNumber      string            `json:"phone_number"`
+	EmailAddress     string            `json:"email_address"`
+	HTTPURL          string            `json:"http_url"`
+	HTTPMethod       string            `json:"http_method"`
+	HTTPParameters   map[string]string `json:"http_parameters"`
+	CommandName      string            `json:"command_name"`
+	CommandArguments string            `json:"command_arguments"`
 }
 
 // Types for JSON Config Unmarshaling
@@ -179,7 +186,7 @@ type triggerDangerousDestinationsJSON2 struct {
 
 type triggerExpectedDestinationsJSON2 struct {
 	Enabled              bool     `json:"enabled"`
-	CheckPeriod          string   `json:"execute_interval"`
+	ExecuteInterval      string   `json:"execute_interval"`
 	HitThreshold         uint32   `json:"hit_threshold"`
 	MinimumNumberLength  uint32   `json:"minimum_number_length"`
 	ActionChainName      string   `json:"action_chain_name"`
@@ -191,7 +198,7 @@ type triggerExpectedDestinationsJSON2 struct {
 
 type triggerSmallCallDurationsJSON2 struct {
 	Enabled              bool   `json:"enabled"`
-	CheckPeriod          string `json:"execute_interval"`
+	ExecuteInterval      string `json:"execute_interval"`
 	HitThreshold         uint32 `json:"hit_threshold"`
 	MinimumNumberLength  uint32 `json:"minimum_number_length"`
 	ActionChainName      string `json:"action_chain_name"`
@@ -228,27 +235,10 @@ type actionLocalCommandsJSON2 struct {
 
 // ActionChainsJSON2 ...
 type ActionChainsJSON2 struct {
-	List map[string][]actionChainActionJSON2 `json:"list"`
-}
-
-type actionChainActionJSON2 struct {
-	ActionName     string   `json:"action"`
-	DataGroupNames []string `json:"data_groups"`
+	List map[string][]actionChainAction2 `json:"list"`
 }
 
 // DataGroupsJSON2 ...
 type DataGroupsJSON2 struct {
-	List map[string]DataGroupJSON2 `json:"list"`
-}
-
-// DataGroupJSON2 ...
-type DataGroupJSON2 struct {
-	ForActions       []string          `json:"for_actions"` // TODO: Maybe this could serve to validate which of the fields bellow should be confirmed to exist
-	PhoneNumber      string            `json:"phone_number"`
-	EmailAddress     string            `json:"email_address"`
-	HTTPURL          string            `json:"http_url"`
-	HTTPMethod       string            `json:"http_method"`
-	HTTPParameters   map[string]string `json:"http_parameters"`
-	CommandName      string            `json:"command_name"`
-	CommandArguments string            `json:"command_arguments"`
+	List map[string]DataGroup2 `json:"list"`
 }

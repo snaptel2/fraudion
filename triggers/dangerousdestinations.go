@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"database/sql"
-	"os/exec"
+	//"os/exec"
 
 	"github.com/SlyMarbo/gmail"
 	"github.com/andmar/fraudion/config"
@@ -16,13 +16,13 @@ import (
 )
 
 // DangerousDestinationsRun ...
-func DangerousDestinationsRun(startUpTime time.Time, configs *config.FraudionConfig, db *sql.DB) {
+func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionConfig2, db *sql.DB) {
 
 	fmt.Println("Starting Trigger, \"DangerousDestinations\"...")
 
-	triggerConfigs := configs.Triggers.DangerousDestinations
+	configsTrigger := configs.Triggers.DangerousDestinations
 
-	//ticker := time.NewTicker(triggerConfigs.CheckPeriod)
+	//ticker := time.NewTicker(configsTrigger.CheckPeriod)
 	//for executionTime := range ticker.C {
 
 	//fmt.Println("DangerousDestinations Trigger executed at", executionTime)
@@ -38,7 +38,7 @@ func DangerousDestinationsRun(startUpTime time.Time, configs *config.FraudionCon
 		// TODO: Also consider having configurable trunk selection prefixes to which this will add the prefixes in the list and consider that as the dialled number (this is to detect trunk selection tries that could match)
 		hits := make(map[string]uint32)
 		//hitsIgnored := make(map[string]uint32)
-		for _, prefix := range triggerConfigs.PrefixList {
+		for _, prefix := range configsTrigger.PrefixList {
 			hits[prefix] = uint32(0)
 		}
 		hitValues := []string{}
@@ -144,13 +144,16 @@ func DangerousDestinationsRun(startUpTime time.Time, configs *config.FraudionCon
 					}
 
 					dialedNumber := matchesDialString.FindStringSubmatch(lastdata)[1]
-					fmt.Println(dialedNumber)
 
-					if uint32(len(dialedNumber)) >= triggerConfigs.MinimumNumberLength {
+					// TODO: Remove this print!
+					//fmt.Println(dialedNumber)
 
-						for _, prefix := range triggerConfigs.PrefixList {
+					if uint32(len(dialedNumber)) >= configsTrigger.MinimumNumberLength {
+
+						for _, prefix := range configsTrigger.PrefixList {
 
 							// TODO: Maybe the "matchStringWithTag" should come from configs also? Also being able to add several?
+							//matchStringWithTag := "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}"
 							matchStringWithTag := "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}"
 							matchString := strings.Replace(matchStringWithTag, "__prefix__", prefix, 1)
 							foundMatch, err := regexp.MatchString(matchString, lastdata)
@@ -183,30 +186,30 @@ func DangerousDestinationsRun(startUpTime time.Time, configs *config.FraudionCon
 
 			runActionChain := false
 			for _, hits := range hits {
-				if hits >= triggerConfigs.HitThreshold {
+				if hits >= configsTrigger.HitThreshold {
 					runActionChain = true
 				}
 			}
 
-			//actionChainGuardTime := triggerConfigs.LastActionChainRunTime.Add(configs.General.DefaultActionChainSleepPeriod)
+			//actionChainGuardTime := configsTrigger.LastActionChainRunTime.Add(configs.General.DefaultActionChainSleepPeriod)
 
 			if runActionChain /*&& actionChainGuardTime.Before(time.Now())*/ {
 
-				actionChainName := triggerConfigs.ActionChainName
+				actionChainName := configsTrigger.ActionChainName
 				if actionChainName == "" {
 					actionChainName = "Default"
 				}
 
 				fmt.Println("Running action chain:", actionChainName)
-				triggerConfigs.LastActionChainRunTime = time.Now()
+				configsTrigger.LastActionChainRunTime = time.Now()
 
 				actionChain := configs.ActionChains.List[actionChainName]
-				contacts := configs.Contacts.List
+				dataGroups := configs.DataGroups.List
 
-				for k, v := range actionChain {
+				for _, v := range actionChain {
 
 					// TODO: Remove this print!
-					fmt.Println(k, v)
+					//fmt.Println(k, v)
 
 					if v.ActionName == "*email" {
 
@@ -216,8 +219,8 @@ func DangerousDestinationsRun(startUpTime time.Time, configs *config.FraudionCon
 						email.From = configs.Actions.Email.Username
 						email.Password = configs.Actions.Email.Password
 						email.ContentType = "text/html; charset=utf-8"
-						for _, contact := range contacts {
-							email.AddRecipient(contact.Email)
+						for _, dataGroupName := range v.DataGroupNames {
+							email.AddRecipient(dataGroups[dataGroupName].EmailAddress)
 						}
 
 						err := email.Send()
@@ -228,7 +231,7 @@ func DangerousDestinationsRun(startUpTime time.Time, configs *config.FraudionCon
 					} else if v.ActionName == "*localcommand" {
 
 						// TODO: Should we assert here that the run user of the process has "root" permissions?
-						for _, contact := range contacts {
+						/*for _, contact := range contacts {
 
 							command := exec.Command(contact.CommandName, contact.CommandArguments)
 
@@ -237,7 +240,7 @@ func DangerousDestinationsRun(startUpTime time.Time, configs *config.FraudionCon
 								fmt.Println(err.Error())
 							}
 
-						}
+						}*/
 
 					}
 
