@@ -115,13 +115,19 @@ type Contacts struct {
 }
 
 type contact struct {
-	ForActions     []string
-	PhoneNumber    string
-	Email          string
-	Message        string
+	ForActions []string // TODO: Maybe this could serve to validate which of the fields bellow should be confirmed to exist
+	// For the Call Action
+	PhoneNumber string
+	// For the Email Action
+	Email   string
+	Message string
+	// For the HTTP Action
 	HTTPURL        string
 	HTTPMethod     string
 	HTTPParameters map[string]string
+	// For the Local Commands Action
+	CommandName      string
+	CommandArguments string
 }
 
 // FraudionConfigJSON ...

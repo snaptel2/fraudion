@@ -77,18 +77,22 @@
       "Default": [
         {
           "Action": "*email",
-          "Contacts": ["*contact_name", "*contact_name2"]
+          "Contacts": ["ContactName", "ContactName2"]
         },
         {
           "Action": "*call",
-          "Contacts": ["*contact_name"]
+          "Contacts": ["ContactName"]
+        },
+        {
+          "Action": "*localcommand",
+          "Contacts": ["KillAmportal"]
         }
         // etc...
       ],
       "One": [
         {
           "Action": "*call",
-          "Contacts": ["*contact_name", "*contact_name2"]
+          "Contacts": ["ContactName", "ContactName2"]
         },
         // etc...
       ]
@@ -108,7 +112,9 @@
           "http_post_parameters_1_k": "http_post_parameters_1_v",
           "http_post_parameters_2_k": "http_post_parameters_2_v"
           // etc...
-        }
+        },
+        "CommandName": "",
+      	"CommandArguments": ""
       },
       "ContactName2": {
         "forActions": ["*action_name", "*action_name"], // [Mandatory] The fields bellow used will depend on the values on this array.
@@ -121,7 +127,24 @@
           "http_post_parameters_1_k": "http_post_parameters_1_v",
           "http_post_parameters_2_k": "http_post_parameters_2_v"
           // etc...
-        }
+        },
+        "CommandName": "",
+      	"CommandArguments": ""
+      },
+      "KillAmportal": {
+        "forActions": ["*action_name", "*action_name"], // [Mandatory] The fields bellow used will depend on the values on this array.
+        "phoneNumber": "",
+        "emailAddress": "",
+        "message": "",
+        "HTTPURL": "",
+        "HTTPMethod": "",
+        "HTTPParameters": {
+          "http_post_parameters_1_k": "http_post_parameters_1_v",
+          "http_post_parameters_2_k": "http_post_parameters_2_v"
+          // etc...
+        },
+        "CommandName": "",
+      	"CommandArguments": ""
       }
       // etc...
     }
