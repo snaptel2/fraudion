@@ -1,5 +1,5 @@
 
-Notes:
+Help:
  - Global help at https://github.com/golang/go/wiki/Projects
  - "Json" Config Reading via http://github.com/DisposaBoy/JsonConfigReader (Json file with comments... like cgrates) more help at http://blog.golang.org/json-and-go, http://json.org, http://stackoverflow.com/questions/20339117/golang-json-tags/20339608, http://stackoverflow.com/questions/17301149/golang-xml-unmarshal-and-time-time-fields?rq=1
  - Command Line argument parsing with https://golang.org/pkg/flag/
@@ -13,3 +13,6 @@ Notes:
  - MySQL Database actions with https://github.com/Go-SQL-Driver/MySQL/ over https://golang.org/pkg/database/sql/ (more information at http://go-database-sql.org/)
  - Please see Unmarshaling better, it can simplify configuration import to structs
  - For system commands https://golang.org/pkg/os/exec/
+
+TODO:
+ - 
