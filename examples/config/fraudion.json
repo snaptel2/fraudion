@@ -7,7 +7,7 @@
 
     "monitored_software": "*ast_1.8",                     // [Mandatory] ast_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
     "cdrs_source": "*db_mysql",                           // [Mandatory] db_mysql: Database MySQL. TODO (v2) json, csvs
-    "default_trigger_execute_interval": "5m",                // [Mandatory] Can be overriden in Trigger configuration
+    "default_trigger_execute_interval": "5m",             // [Mandatory] Can be overriden in Trigger configuration
     "default_hit_threshold": 5,                           // [Mandatory] Can be overriden in Trigger configuration
     "default_minimum_destination_number_length": 3,       // [Mandatory] Only consider CDRs with destination number with len > this number (this is to exclude internal calls that normally have 3 to 5 digits destination numbers)
     "default_action_chain_holdoff_period": "5m",          // [Mandatory] Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
@@ -32,11 +32,11 @@
       "action_chain_name": "*default",                            // See description on the SimultaneousCalls sub section
       "consider_cdrs_from_last": "5",
       "prefix_list": ["351", "244", "91", "53", "256", "48"],     // [Mandatory, can be empty but duuh!] The trigger searches for numbers containing the prefixes in this list, according to MatchRegex, on the softswitch "dial string" (e.g. SIP/trunk1/354123123123,300,w in Asterisk/Elastix (lastapp == Dial & lastdata field))
-      "match_regex": "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}",  // [Future] The trigger will use this as explained above, you use __prefix__ to specify where the prefix values should go
-      "ignore_regex": "^[0-9]{9}$"                                  // [Future] This will ignore numbers with 9 digits (e.g. Portugal national numbering format) + Ignores numbers with length < MinimumNumberLength, so this should eliminate national special services numbers (e.g. 911, etc)
+      "match_regex": "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}",   // [Future] The trigger will use this as explained above, you use __prefix__ to specify where the prefix values should go
+      "ignore_regex": "^[0-9]{9}$"                                // [Future] This will ignore numbers with 9 digits (e.g. Portugal national numbering format) + Ignores numbers with length < MinimumNumberLength, so this should eliminate national special services numbers (e.g. 911, etc)
     },
     "expected_destinations": {
-      "enabled": true,                // See description on the SimultaneousCalls sub section
+      "enabled": true,                                            // See description on the SimultaneousCalls sub section
       "execute_interval": "5m",
       "hit_threshold": 5,
       "minimum_number_length": 10,
@@ -85,22 +85,22 @@
       "*default": [
         {
           "action": "*email",
-          "data_groups": ["ContactName", "ContactName2"]
+          "data_groups": ["DataGroupName", "DataGroup2Name"]
         },
         {
           "action": "*call",
-          "data_groups": ["ContactName"]
+          "data_groups": ["DataGroupName"]
         },
         {
           "action": "*localcommand",
-          "data_groups": ["KillAmportal"]
+          "data_groups": ["DataGroupName"]
         },
         // etc...
       ],
       "OneRandomName": [
         {
           "action": "*call",
-          "data_groups": ["ContactName", "ContactName2"]
+          "data_groups": ["DataGroupName", "DataGroup2Name"]
         }
       ],
       // etc...
@@ -113,8 +113,7 @@
 
     "list": {
 
-      "ContactName": {
-        "for_actions": ["*action_name", "*action_name"], // [Mandatory] The fields bellow used will depend on the values on this array.
+      "DataGroupName": {
         "phone_number": "003519347396460",
         "email_address": "username@domain",
         "http_url": "api.somedomain.com/fraudion_in",
