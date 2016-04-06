@@ -1,5 +1,6 @@
 package config
 
+/*
 import (
 	"fmt"
 	"reflect"
@@ -7,6 +8,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/andmar/fraudion/types"
 	"github.com/andmar/fraudion/utils"
 )
 
@@ -24,11 +26,11 @@ var (
 )
 
 // CheckJSONSanityAndLoadConfigs ...
-func (fraudionConfig *FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON *FraudionConfigJSON /*, validateOnly bool*/) error {
+func (fraudionConfig *types.FraudionConfig) CheckJSONSanityAndLoadConfigs(ConfigsJSON *types.FraudionConfigJSON /*, validateOnly bool*/ /*) error {*/
 
-	// ** General Section
-	// * Monitored Software
-	if err := errorOnValueNotFound(ConfigsJSON.General.MonitoredSoftware == nil, "General", "MonitoredSoftware", "string", "\"nothing\""); err != nil {
+// ** General Section
+// * Monitored Software
+/*if err := errorOnValueNotFound(ConfigsJSON.General.MonitoredSoftware == nil, "General", "MonitoredSoftware", "string", "\"nothing\""); err != nil {
 		return utils.DebugLogAndGetError(err.Error(), true)
 	}
 	valueOfMonitoredSoftware, hasCorrectType := ConfigsJSON.General.MonitoredSoftware.(string)
@@ -625,7 +627,7 @@ func checkJSONSanityOfEnabledConfigs(JSONConfig map[string]interface{}, sectionN
 
 }
 
-func checkJSONSanityOfCheckPeriodConfigs(fraudionConfig *FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string, minimumTriggerCheckPeriodDuration time.Duration) (time.Duration, error) {
+func checkJSONSanityOfCheckPeriodConfigs(fraudionConfig *types.FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string, minimumTriggerCheckPeriodDuration time.Duration) (time.Duration, error) {
 
 	if utils.StringKeyInMap("CheckPeriod", simCallsTriggerJSONConfig) {
 
@@ -654,7 +656,7 @@ func checkJSONSanityOfCheckPeriodConfigs(fraudionConfig *FraudionConfig, simCall
 
 }
 
-func checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig *FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (uint32, error) {
+func checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig *types.FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (uint32, error) {
 
 	if utils.StringKeyInMap("MinimumNumberLength", simCallsTriggerJSONConfig) {
 
@@ -679,7 +681,7 @@ func checkJSONSanityOfMinimumNumberLengthConfigs(fraudionConfig *FraudionConfig,
 
 }
 
-func checkJSONSanityOfHitThresholdConfigs(fraudionConfig *FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (uint32, error) {
+func checkJSONSanityOfHitThresholdConfigs(fraudionConfig *types.FraudionConfig, simCallsTriggerJSONConfig map[string]interface{}, triggerName string) (uint32, error) {
 
 	if utils.StringKeyInMap("HitThreshold", simCallsTriggerJSONConfig) {
 
@@ -741,3 +743,4 @@ func checkJSONSanityOfPrefixListConfigs(fraudionConfig *FraudionConfig, simCalls
 	return *new([]string), fmt.Errorf("\"PrefixList\" value for Trigger \"%s\" not found", triggerName)
 
 }
+*/

@@ -1,5 +1,6 @@
 package config
 
+/*
 import (
 	"fmt"
 	"os"
@@ -9,6 +10,7 @@ import (
 	"path/filepath"
 
 	"github.com/DisposaBoy/JsonConfigReader"
+	"github.com/andmar/fraudion/types"
 	"github.com/andmar/fraudion/utils"
 )
 
@@ -17,7 +19,7 @@ const (
 )
 
 // LoadConfigFromJSONFile ...
-func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir string) error {
+func LoadConfigFromJSONFile(configDir string) error {
 
 	// TODO: Remove this print!
 	//fmt.Println("** JSON file parsing start.")
@@ -50,7 +52,7 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 		customErrorMessage := fmt.Sprintf("Could not find \"General\" section in config JSON")
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
-	configGeneralJSON := new(GeneralJSON)
+	configGeneralJSON := new(types.GeneralJSON)
 	if err := json.Unmarshal(*rawGeneralJSON, configGeneralJSON); err != nil {
 		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"General\" section in config JSON")
 		return utils.DebugLogAndGetError(customErrorMessage, true)
@@ -60,7 +62,7 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 	//fmt.Print(reflect.TypeOf(configGeneralJSON))
 	//fmt.Println(" ", configGeneralJSON)
 
-	fraudionJSONConfig.General = *configGeneralJSON
+	fraudionJSONConfig.General = *types.configGeneralJSON
 
 	// Triggers Sectionwefd
 	rawTriggersJSON, hasKey := RawJSON["Triggers"]
@@ -139,4 +141,4 @@ func (fraudionJSONConfig *FraudionConfigJSON) LoadConfigFromJSONFile(configDir s
 
 	return nil
 
-}
+}*/

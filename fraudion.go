@@ -3,9 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"time"
 
@@ -13,6 +11,7 @@ import (
 
 	"github.com/andmar/fraudion/config"
 	"github.com/andmar/fraudion/triggers"
+	"github.com/andmar/fraudion/types"
 
 	_ "github.com/go-sql-driver/mysql"
 )
@@ -30,39 +29,34 @@ var (
 	argCliDBPass    = flag.String("dbpass", "", "<help message for 'dbpass'>")
 )
 
-// Defines "Global" Stuff
-var (
-	startUpTime time.Time
-	logTrace    *log.Logger
-	logInfo     *log.Logger
-	logWarning  *log.Logger
-	logError    *log.Logger
-)
+func init() {
+	types.Globals = new(types.Fraudion)
+	types.Globals.Debug = true
+	types.Globals.SetupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+}
 
 // Starts here!
 func main() {
 
-	setupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+	types.Globals.StartUpTime = time.Now()
+	types.Globals.LogInfo.Printf("Starting at %s\n", types.Globals.StartUpTime)
 
-	startUpTime := time.Now()
-	logInfo.Printf("Starting at %s\n", startUpTime)
-
-	logInfo.Println("Parsing CLI flags...")
+	types.Globals.LogInfo.Println("Parsing CLI flags...")
 	flag.Parse()
 
-	configsJSON := new(config.FraudionConfigJSON2)
-	err := configsJSON.LoadConfigFromJSONFile2(*argCliConfigDir)
+	configsJSON := new(types.FraudionConfigJSON2)
+	err := config.LoadConfigFromJSONFile(configsJSON, *argCliConfigDir)
 	if err != nil {
-		logError.Fatalf("There was an error (%s) parsing the Fraudion JSON configuration file\n", err)
+		types.Globals.LogError.Fatalf("There was an error (%s) parsing the Fraudion JSON configuration file\n", err)
 	}
 
-	configs := new(config.FraudionConfig2)
-	err = configs.ValidateAndLoadConfigs2(configsJSON, false)
+	configs := new(types.FraudionConfig2)
+	err = config.ValidateAndLoadConfigs(configs, configsJSON, false)
 	if err != nil {
-		logError.Fatalf("There was an error (%s) validating/loading the Fraudion configuration\n", err)
+		types.Globals.LogError.Fatalf("There was an error (%s) validating/loading the Fraudion configuration\n", err)
 	}
 
-	logInfo.Println("Connecting to the CDRs Database...")
+	types.Globals.LogInfo.Println("Connecting to the CDRs Database...")
 	// TODO: This is here only for testing purposes, maybe this will move to the Triggers code, but the information must be global, maybe come from config file
 	// TODO: This database connection method is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
 	var dbstring string
@@ -73,16 +67,16 @@ func main() {
 	}
 	db, err := sql.Open("mysql", dbstring)
 	if err != nil {
-		logError.Fatalf("There was an error (%s) trying to open a connection to the database\n", err)
+		types.Globals.LogError.Fatalf("There was an error (%s) trying to open a connection to the database\n", err)
 	}
 
 	// Launch Triggers!
-	logInfo.Println("Launching enabled triggers...")
+	types.Globals.LogInfo.Println("Launching enabled triggers...")
 	/*if configs.Triggers.SimultaneousCalls.Enabled == true {
 		go triggers.SimultaneousCallsRun(configs, new(softswitches.Asterisk1_8))
 	}*/
 	if configs.Triggers.DangerousDestinations.Enabled == true {
-		go triggers.DangerousDestinationsRun(&startUpTime, configs, db)
+		go triggers.DangerousDestinationsRun(configs, db)
 	}
 
 	/*if configs.Triggers.ExpectedDestinations.Enabled == true {
@@ -100,14 +94,5 @@ func main() {
 		time.Sleep(100000 * time.Hour)
 
 	}
-
-}
-
-func setupLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
-
-	logTrace = log.New(traceHandle, "FRAUDION TRACE: ", log.Ldate|log.Ltime|log.Lshortfile)
-	logInfo = log.New(infoHandle, "FRAUDION INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
-	logWarning = log.New(warningHandle, "FRAUDION WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
-	logError = log.New(errorHandle, "FRAUDION ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 }

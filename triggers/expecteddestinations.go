@@ -6,11 +6,11 @@ import (
 
 	"database/sql"
 
-	"github.com/andmar/fraudion/config"
+	"github.com/andmar/fraudion/types"
 )
 
 // ExpectedDestinationsRun ...
-func ExpectedDestinationsRun(configs *config.FraudionConfig2, db *sql.DB) {
+func ExpectedDestinationsRun(configs *types.FraudionConfig2, db *sql.DB) {
 
 	fmt.Println("Starting Trigger, \"ExpectedDestinations\"")
 

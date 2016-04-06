@@ -2,11 +2,8 @@ package utils
 
 import (
 	"fmt"
-	//"strings"
-)
 
-const (
-	DEBUG = true
+	"github.com/andmar/fraudion/types"
 )
 
 // StringInStringsSlice ...
@@ -37,7 +34,7 @@ func DebugLogAndGetError(errorMessage string, getError bool) error {
 
 	// TODO Log this to Syslog
 
-	if DEBUG {
+	if types.Globals.Debug {
 		fmt.Printf("%s\n", customErrorMessage)
 	}
 

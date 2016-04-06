@@ -11,12 +11,12 @@ import (
 	"os/exec"
 
 	"github.com/SlyMarbo/gmail"
-	"github.com/andmar/fraudion/config"
+	"github.com/andmar/fraudion/types"
 	"github.com/andmar/fraudion/utils"
 )
 
 // DangerousDestinationsRun ...
-func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionConfig2, db *sql.DB) {
+func DangerousDestinationsRun(configs *types.FraudionConfig2, db *sql.DB) {
 
 	fmt.Println("Starting Trigger, \"DangerousDestinations\"...")
 
@@ -67,7 +67,7 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 		if err != nil {
 			utils.DebugLogAndGetError(fmt.Sprintf("Something (%s) happened while trying to parse \"stringGuardTime\"", err.Error()), false)
 		}
-		guardTime := startUpTime.Add(-guardDuration)
+		guardTime := types.Globals.StartUpTime.Add(-guardDuration)
 		durationSinceGuardTime := time.Now().Sub(guardTime)
 
 		// TODO: From here on what is done is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch

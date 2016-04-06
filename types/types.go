@@ -1,8 +1,33 @@
-package config
+package types
 
 import (
+	"io"
+	"log"
 	"time"
 )
+
+// Fraudion ...
+type Fraudion struct {
+	StartUpTime time.Time
+	Debug       bool
+	LogTrace    *log.Logger
+	LogInfo     *log.Logger
+	LogWarning  *log.Logger
+	LogError    *log.Logger
+}
+
+// SetupLogging ...
+func (fraudion *Fraudion) SetupLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
+
+	fraudion.LogTrace = log.New(traceHandle, "FRAUDION TRACE: ", log.Ldate|log.Ltime|log.Lshortfile)
+	fraudion.LogInfo = log.New(infoHandle, "FRAUDION INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	fraudion.LogWarning = log.New(warningHandle, "FRAUDION WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	fraudion.LogError = log.New(errorHandle, "FRAUDION ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
+
+}
+
+// Globals ...
+var Globals *Fraudion
 
 // Types for Loaded Config
 

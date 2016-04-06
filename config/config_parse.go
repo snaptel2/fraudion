@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 
 	"github.com/DisposaBoy/JsonConfigReader"
+
+	"github.com/andmar/fraudion/types"
 	"github.com/andmar/fraudion/utils"
 )
 
@@ -15,8 +17,8 @@ const (
 	constDefaultJSONConfigFilename2 = "fraudion.json"
 )
 
-// LoadConfigFromJSONFile2 ...
-func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir string) error {
+// LoadConfigFromJSONFile ...
+func LoadConfigFromJSONFile(configsJSON *types.FraudionConfigJSON2, configDir string) error {
 
 	configFileName := constDefaultJSONConfigFilename2
 
@@ -47,13 +49,13 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	configGeneralJSON := new(GeneralJSON2)
+	configGeneralJSON := new(types.GeneralJSON2)
 	if err := json.Unmarshal(*rawGeneralJSON, configGeneralJSON); err != nil {
 		customErrorMessage := fmt.Sprintf("Could not (%s) Unmarshal \"%s\" section in config JSON", err, sectionName)
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fraudionJSONConfig.General = *configGeneralJSON
+	configsJSON.General = *configGeneralJSON
 	fmt.Println("General:", configGeneralJSON)
 
 	// ** Triggers Section
@@ -64,13 +66,13 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	configTriggersJSON := new(TriggersJSON2)
+	configTriggersJSON := new(types.TriggersJSON2)
 	if err := json.Unmarshal(*rawTriggersJSON, configTriggersJSON); err != nil {
 		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"%s\" section in config JSON", sectionName)
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fraudionJSONConfig.Triggers = *configTriggersJSON
+	configsJSON.Triggers = *configTriggersJSON
 	fmt.Println("Triggers:", configTriggersJSON)
 
 	// ** Actions Section
@@ -81,13 +83,13 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	configActionsJSON := new(ActionsJSON2)
+	configActionsJSON := new(types.ActionsJSON2)
 	if err := json.Unmarshal(*rawActionsJSON, configActionsJSON); err != nil {
 		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"%s\" section in config JSON", sectionName)
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fraudionJSONConfig.Actions = *configActionsJSON
+	configsJSON.Actions = *configActionsJSON
 	fmt.Println("Actions:", configActionsJSON)
 
 	// ** Actions Chains Section
@@ -98,13 +100,13 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	configActionChainsJSON := new(ActionChainsJSON2)
+	configActionChainsJSON := new(types.ActionChainsJSON2)
 	if err := json.Unmarshal(*rawActionChainsJSON, configActionChainsJSON); err != nil {
 		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"%s\" section in config JSON", sectionName)
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fraudionJSONConfig.ActionChains = *configActionChainsJSON
+	configsJSON.ActionChains = *configActionChainsJSON
 	fmt.Println("Action Chains:", configActionChainsJSON)
 
 	// ** Data Groups Section
@@ -115,13 +117,13 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	configDataGroupsJSON := new(DataGroupsJSON2)
+	configDataGroupsJSON := new(types.DataGroupsJSON2)
 	if err := json.Unmarshal(*rawDataGroupsJSON, configDataGroupsJSON); err != nil {
 		customErrorMessage := fmt.Sprintf("Could not Unmarshal \"%s\" section in config JSON", sectionName)
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 
-	fraudionJSONConfig.DataGroups = *configDataGroupsJSON
+	configsJSON.DataGroups = *configDataGroupsJSON
 	fmt.Println("Data Groups:", configDataGroupsJSON)
 
 	return nil

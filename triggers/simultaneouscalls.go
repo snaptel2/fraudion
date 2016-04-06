@@ -4,12 +4,12 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/andmar/fraudion/config"
 	"github.com/andmar/fraudion/interfaces/softswitches"
+	"github.com/andmar/fraudion/types"
 )
 
 // SimultaneousCallsRun ...
-func SimultaneousCallsRun(configs *config.FraudionConfig2, softswitch softswitches.Softswitch) {
+func SimultaneousCallsRun(configs *types.FraudionConfig2, softswitch softswitches.Softswitch) {
 
 	fmt.Println("Starting Trigger, \"SimultaneousCalls\"")
 

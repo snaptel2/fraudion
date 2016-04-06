@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/andmar/fraudion/types"
 	"github.com/andmar/fraudion/utils"
 )
 
@@ -17,8 +18,8 @@ var (
 	constSupportedCDRSources2 = []string{"*db_mysql"}
 )
 
-// ValidateAndLoadConfigs2 ...
-func (configs *FraudionConfig2) ValidateAndLoadConfigs2(configsJSON *FraudionConfigJSON2, validateOnly bool) error {
+// ValidateAndLoadConfigs ...
+func ValidateAndLoadConfigs(configs *types.FraudionConfig2, configsJSON *types.FraudionConfigJSON2, validateOnly bool) error {
 
 	fmt.Println("Validating and Loading configurations...")
 

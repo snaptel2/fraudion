@@ -6,11 +6,11 @@ import (
 
 	"database/sql"
 
-	"github.com/andmar/fraudion/config"
+	"github.com/andmar/fraudion/types"
 )
 
 // SmallDurationCallsRun ...
-func SmallDurationCallsRun(configs *config.FraudionConfig2, db *sql.DB) {
+func SmallDurationCallsRun(configs *types.FraudionConfig2, db *sql.DB) {
 
 	fmt.Println("Starting Trigger, \"SmallDurationCalls\"")
 
