@@ -12,7 +12,6 @@ import (
 	"database/sql"
 
 	"github.com/andmar/fraudion/config"
-	//"github.com/andmar/fraudion/interfaces/softswitches"
 	"github.com/andmar/fraudion/triggers"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -21,12 +20,12 @@ import (
 // Defines Constants
 const (
 	constDefaultConfigDir = "/etc/fraudion"
-	constLogFile          = "fraudion.log"
+	constDefaultLogFile   = "/var/log/fraudion.log"
 )
 
-// Defines expected CLI arguments/flags
+// Defines expected CLI flags
 var (
-	argCliLogFile   = flag.String("log", constLogFile, "<help message for 'log'>")
+	argCliLogFile   = flag.String("log", constDefaultLogFile, "<help message for 'log'>")
 	argCliConfigDir = flag.String("configdir", constDefaultConfigDir, "<help message for 'configdir'>")
 	argCliDBPass    = flag.String("dbpass", "", "<help message for 'dbpass'>")
 )
@@ -43,36 +42,29 @@ var (
 // Starts here!
 func main() {
 
-	// Setup Logging
 	setupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 
 	startUpTime := time.Now()
 	logInfo.Printf("Starting at %s\n", startUpTime)
 
-	fmt.Println("Parsing CLI parameters...")
+	logInfo.Println("Parsing CLI flags...")
 	flag.Parse()
 
 	configsJSON := new(config.FraudionConfigJSON2)
 	err := configsJSON.LoadConfigFromJSONFile2(*argCliConfigDir)
 	if err != nil {
-		fmt.Printf("There was an error (%s) parsing the Fraudion JSON configuration file\n", err)
-		os.Exit(-1)
+		logError.Fatalf("There was an error (%s) parsing the Fraudion JSON configuration file\n", err)
 	}
-
-	//fmt.Println("** Parsed Configs:", configsJSON)
 
 	configs := new(config.FraudionConfig2)
 	err = configs.ValidateAndLoadConfigs2(configsJSON, false)
 	if err != nil {
-		fmt.Printf("There was an error (%s) validating/loading the Fraudion configuration\n", err)
-		os.Exit(-1)
+		logError.Fatalf("There was an error (%s) validating/loading the Fraudion configuration\n", err)
 	}
 
-	//fmt.Println("** Loaded Configs:", configs)
-
-	fmt.Println("Connecting to the CDRs Database...")
-	// TODO: This database connection is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
-	// TODO: The information (user, password) should come from somewhere on the configs also...
+	logInfo.Println("Connecting to the CDRs Database...")
+	// TODO: This is here only for testing purposes, maybe this will move to the Triggers code, but the information must be global, maybe come from config file
+	// TODO: This database connection method is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
 	var dbstring string
 	if *argCliDBPass == "" {
 		dbstring = fmt.Sprintf("root:@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1")
@@ -81,12 +73,11 @@ func main() {
 	}
 	db, err := sql.Open("mysql", dbstring)
 	if err != nil {
-		fmt.Printf("There was an error (%s) trying to open a connection to the database\n", err)
-		os.Exit(-1)
+		logError.Fatalf("There was an error (%s) trying to open a connection to the database\n", err)
 	}
 
 	// Launch Triggers!
-	fmt.Println("Launching enabled triggers...")
+	logInfo.Println("Launching enabled triggers...")
 	/*if configs.Triggers.SimultaneousCalls.Enabled == true {
 		go triggers.SimultaneousCallsRun(configs, new(softswitches.Asterisk1_8))
 	}*/
