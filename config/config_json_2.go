@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	constDefaultJSONConfigFilename2 = "fraudion_2.json"
+	constDefaultJSONConfigFilename2 = "fraudion.json"
 )
 
 // LoadConfigFromJSONFile2 ...
@@ -25,7 +25,7 @@ func (fraudionJSONConfig *FraudionConfigJSON2) LoadConfigFromJSONFile2(configDir
 	// ** JSON config file to map[string] to Raw JSON
 	JSONconfigFile, err := os.Open(filepath.Join(configDir, configFileName))
 	if err != nil {
-		customErrorMessage := fmt.Sprintf("There was an error (%s)opening the JSON config file", err.Error())
+		customErrorMessage := fmt.Sprintf("There was an error (%s) opening the JSON config file", err.Error())
 		return utils.DebugLogAndGetError(customErrorMessage, true)
 	}
 	defer JSONconfigFile.Close()

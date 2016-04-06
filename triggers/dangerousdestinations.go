@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"database/sql"
-	//"os/exec"
+	"os/exec"
 
 	"github.com/SlyMarbo/gmail"
 	"github.com/andmar/fraudion/config"
@@ -71,7 +71,6 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 		durationSinceGuardTime := time.Now().Sub(guardTime)
 
 		// TODO: From here on what is done is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
-		fmt.Println(fmt.Sprintf("SELECT * FROM cdr WHERE calldate >= DATE_SUB(CURDATE(), INTERVAL %v HOUR) AND calldate >= DATE_SUB(CURDATE(), INTERVAL %v HOUR) ORDER BY calldate DESC;", uint32(considerCDRsFromLast.Hours()), uint32(durationSinceGuardTime.Hours())))
 		rows, err := db.Query(fmt.Sprintf("SELECT * FROM cdr WHERE calldate >= DATE_SUB(CURDATE(), INTERVAL %v HOUR) AND calldate >= DATE_SUB(CURDATE(), INTERVAL %v HOUR) ORDER BY calldate DESC;", uint32(considerCDRsFromLast.Hours()), uint32(durationSinceGuardTime.Hours())))
 		if err != nil {
 			utils.DebugLogAndGetError(fmt.Sprintf("Something (%s) happened while trying to Query the CDRs database", err.Error()), false)
@@ -132,11 +131,12 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 				)*/
 
 				if err != nil {
-					utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to get the CDR data (%s)", err.Error()), false)
+					utils.DebugLogAndGetError(fmt.Sprintf("Something (%s) happened while trying to get the CDR data", err.Error()), false)
 				} else {
 
 					// TODO: Should we match dials to more than one destination SIP/test/<number>&SIP/test/<number2>
 					// TODO: Maybe the dial string match code should be from the interfaces because it's a softswitch specific thing
+					// TODO: This is also Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
 					matchesDialString := regexp.MustCompile("(?:SIP|DAHDI)/[^@&]+/([0-9]+)") // NOTE: Supported dial string format
 					matchedString := matchesDialString.FindString(lastdata)
 					if lastapp != "Dial" /*|| strings.Contains(lastapp, "Local") || !test */ || matchedString == "" { // NOTE: Ignore if "lastapp" is no Dial and "lastdata" does not contain an expected dial string
@@ -146,7 +146,8 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 					dialedNumber := matchesDialString.FindStringSubmatch(lastdata)[1]
 
 					// TODO: Remove this print!
-					//fmt.Println(dialedNumber)
+					fmt.Println("*****")
+					fmt.Println(dialedNumber, configsTrigger.MinimumNumberLength)
 
 					if uint32(len(dialedNumber)) >= configsTrigger.MinimumNumberLength {
 
@@ -158,8 +159,10 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 							matchString := strings.Replace(matchStringWithTag, "__prefix__", prefix, 1)
 							foundMatch, err := regexp.MatchString(matchString, lastdata)
 
+							fmt.Println(matchString, foundMatch)
+
 							if err != nil {
-								utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to match (found) a Prefix with regexp (%s)", err.Error()), false)
+								utils.DebugLogAndGetError(fmt.Sprintf("Something (%s) happened while trying to match (found) a Prefix with regexp", err.Error()), false)
 							}
 
 							// TODO: Maybe the "matchStringWithTag" should come from configs also? Also being able to add several?
@@ -168,8 +171,10 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 							matchString = strings.Replace(matchStringWithTag, "__prefix__", prefix, 1)
 							foundIgnore, err := regexp.MatchString(matchString, lastdata)
 
+							fmt.Println(matchString, foundIgnore)
+
 							if err != nil {
-								utils.DebugLogAndGetError(fmt.Sprintf("Something happened while trying to match (ignore) a Prefix with regexp (%s)", err.Error()), false)
+								utils.DebugLogAndGetError(fmt.Sprintf("Something (%s) happened while trying to match (ignore) a Prefix with regexp", err.Error()), false)
 							}
 
 							if foundMatch == true && foundIgnore == false {
@@ -185,12 +190,16 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 
 			}
 
+			fmt.Println(hits)
+
 			runActionChain := false
 			for _, hits := range hits {
 				if hits >= configsTrigger.HitThreshold {
 					runActionChain = true
 				}
 			}
+
+			fmt.Println(runActionChain)
 
 			//actionChainGuardTime := configsTrigger.LastActionChainRunTime.Add(configs.General.DefaultActionChainSleepPeriod)
 
@@ -207,20 +216,24 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 				actionChain := configs.ActionChains.List[actionChainName]
 				dataGroups := configs.DataGroups.List
 
-				for _, v := range actionChain {
+				for k, v := range actionChain {
 
 					// TODO: Remove this print!
-					//fmt.Println(k, v)
+					fmt.Println(k, v)
 
 					if v.ActionName == "*email" {
 
-						// TODO: Should we assert here that Email Action is enabled or on config loading?
+						// TODO: Should we assert here that Email Action is enabled here or on config validation?
 
-						email := gmail.Compose("Email subject", "Email body")
+						body := fmt.Sprintf("Found:\n\n%v", hits)
+
+						email := gmail.Compose("Fraudion ALERT: Dangerous Destinations!", fmt.Sprintf("\n\n%s", body))
 						email.From = configs.Actions.Email.Username
 						email.Password = configs.Actions.Email.Password
+						fmt.Println(configs.Actions.Email.Username, configs.Actions.Email.Password)
 						email.ContentType = "text/html; charset=utf-8"
 						for _, dataGroupName := range v.DataGroupNames {
+							fmt.Println(dataGroups[dataGroupName].EmailAddress)
 							email.AddRecipient(dataGroups[dataGroupName].EmailAddress)
 						}
 
@@ -232,16 +245,20 @@ func DangerousDestinationsRun(startUpTime *time.Time, configs *config.FraudionCo
 					} else if v.ActionName == "*localcommand" {
 
 						// TODO: Should we assert here that the run user of the process has "root" permissions?
-						/*for _, contact := range contacts {
 
-							command := exec.Command(contact.CommandName, contact.CommandArguments)
+						for _, dataGroupName := range v.DataGroupNames {
+							command := exec.Command(dataGroups[dataGroupName].CommandName, dataGroups[dataGroupName].CommandArguments)
 
 							err := command.Run()
 							if err != nil {
 								fmt.Println(err.Error())
 							}
 
-						}*/
+						}
+
+					} else {
+
+						fmt.Println("Unsupported Action!")
 
 					}
 
