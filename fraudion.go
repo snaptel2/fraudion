@@ -3,6 +3,9 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
+	"io/ioutil"
+	"log"
 	"os"
 	"time"
 
@@ -15,24 +18,36 @@ import (
 	_ "github.com/go-sql-driver/mysql"
 )
 
-// Defines constants
+// Defines Constants
 const (
-	constDefaultConfigDir = "examples/config" // TODO: This will probably need to be changed to something like "/usr/share/fraudion" when we aproach a more usable version!
+	constDefaultConfigDir = "/etc/fraudion"
+	constLogFile          = "fraudion.log"
 )
 
 // Defines expected CLI arguments/flags
 var (
+	argCliLogFile   = flag.String("log", constLogFile, "<help message for 'log'>")
 	argCliConfigDir = flag.String("configdir", constDefaultConfigDir, "<help message for 'configdir'>")
-	argCliTest      = flag.String("test", "", "<help message for 'test'>")
 	argCliDBPass    = flag.String("dbpass", "", "<help message for 'dbpass'>")
-	startUpTime     time.Time
+)
+
+// Defines "Global" Stuff
+var (
+	startUpTime time.Time
+	logTrace    *log.Logger
+	logInfo     *log.Logger
+	logWarning  *log.Logger
+	logError    *log.Logger
 )
 
 // Starts here!
 func main() {
 
-	fmt.Println("Starting...")
+	// Setup Logging
+	setupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+
 	startUpTime := time.Now()
+	logInfo.Printf("Starting at %s\n", startUpTime)
 
 	fmt.Println("Parsing CLI parameters...")
 	flag.Parse()
@@ -44,7 +59,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	fmt.Println("** Parsed Configs:", configsJSON)
+	//fmt.Println("** Parsed Configs:", configsJSON)
 
 	configs := new(config.FraudionConfig2)
 	err = configs.ValidateAndLoadConfigs2(configsJSON, false)
@@ -53,7 +68,7 @@ func main() {
 		os.Exit(-1)
 	}
 
-	fmt.Println("** Loaded Configs:", configs)
+	//fmt.Println("** Loaded Configs:", configs)
 
 	fmt.Println("Connecting to the CDRs Database...")
 	// TODO: This database connection is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
@@ -94,5 +109,14 @@ func main() {
 		time.Sleep(100000 * time.Hour)
 
 	}
+
+}
+
+func setupLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
+
+	logTrace = log.New(traceHandle, "FRAUDION TRACE: ", log.Ldate|log.Ltime|log.Lshortfile)
+	logInfo = log.New(infoHandle, "FRAUDION INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
+	logWarning = log.New(warningHandle, "FRAUDION WARNING: ", log.Ldate|log.Ltime|log.Lshortfile)
+	logError = log.New(errorHandle, "FRAUDION ERROR: ", log.Ldate|log.Ltime|log.Lshortfile)
 
 }
