@@ -56,6 +56,8 @@ func main() {
 		types.Globals.LogError.Fatalf("There was an error (%s) validating/loading the Fraudion configuration\n", err)
 	}
 
+	os.Exit(-1)
+
 	types.Globals.LogInfo.Println("Connecting to the CDRs Database...")
 	// TODO: This is here only for testing purposes, maybe this will move to the Triggers code, but the information must be global, maybe come from config file
 	// TODO: This database connection method is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch

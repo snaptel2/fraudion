@@ -21,7 +21,7 @@ var (
 // ValidateAndLoadConfigs ...
 func ValidateAndLoadConfigs(configs *types.FraudionConfig2, configsJSON *types.FraudionConfigJSON2, validateOnly bool) error {
 
-	fmt.Println("Validating and Loading configurations...")
+	types.Globals.LogInfo.Println("Validating and Loading configurations...")
 
 	// ** General Section
 
@@ -200,6 +200,8 @@ func ValidateAndLoadConfigs(configs *types.FraudionConfig2, configsJSON *types.F
 
 	// ** DataGroups Section
 	configs.DataGroups.List = configsJSON.DataGroups.List
+
+	types.Globals.LogInfo.Printf("Loaded Configs: %v", configs)
 
 	return nil
 

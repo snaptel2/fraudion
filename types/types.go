@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Fraudion ...
+// Fraudion The "Type"
 type Fraudion struct {
 	StartUpTime time.Time
 	Debug       bool

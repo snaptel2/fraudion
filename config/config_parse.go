@@ -22,7 +22,7 @@ func LoadConfigFromJSONFile(configsJSON *types.FraudionConfigJSON2, configDir st
 
 	configFileName := constDefaultJSONConfigFilename2
 
-	fmt.Printf("Loading JSON from config file \"%s\"...\n", filepath.Join(configDir, configFileName))
+	types.Globals.LogInfo.Printf("Loading JSON from config file \"%s\"...\n", filepath.Join(configDir, configFileName))
 
 	// ** JSON config file to map[string] to Raw JSON
 	JSONconfigFile, err := os.Open(filepath.Join(configDir, configFileName))
@@ -56,7 +56,7 @@ func LoadConfigFromJSONFile(configsJSON *types.FraudionConfigJSON2, configDir st
 	}
 
 	configsJSON.General = *configGeneralJSON
-	fmt.Println("General:", configGeneralJSON)
+	types.Globals.LogInfo.Println("General:", configGeneralJSON)
 
 	// ** Triggers Section
 	sectionName = "triggers"
@@ -73,7 +73,7 @@ func LoadConfigFromJSONFile(configsJSON *types.FraudionConfigJSON2, configDir st
 	}
 
 	configsJSON.Triggers = *configTriggersJSON
-	fmt.Println("Triggers:", configTriggersJSON)
+	types.Globals.LogInfo.Println("Triggers:", configTriggersJSON)
 
 	// ** Actions Section
 	sectionName = "actions"
@@ -90,7 +90,7 @@ func LoadConfigFromJSONFile(configsJSON *types.FraudionConfigJSON2, configDir st
 	}
 
 	configsJSON.Actions = *configActionsJSON
-	fmt.Println("Actions:", configActionsJSON)
+	types.Globals.LogInfo.Println("Actions:", configActionsJSON)
 
 	// ** Actions Chains Section
 	sectionName = "action_chains"
@@ -107,7 +107,7 @@ func LoadConfigFromJSONFile(configsJSON *types.FraudionConfigJSON2, configDir st
 	}
 
 	configsJSON.ActionChains = *configActionChainsJSON
-	fmt.Println("Action Chains:", configActionChainsJSON)
+	types.Globals.LogInfo.Println("Action Chains:", configActionChainsJSON)
 
 	// ** Data Groups Section
 	sectionName = "data_groups"
@@ -124,7 +124,9 @@ func LoadConfigFromJSONFile(configsJSON *types.FraudionConfigJSON2, configDir st
 	}
 
 	configsJSON.DataGroups = *configDataGroupsJSON
-	fmt.Println("Data Groups:", configDataGroupsJSON)
+	types.Globals.LogInfo.Println("Data Groups:", configDataGroupsJSON)
+
+	types.Globals.LogInfo.Printf("Parsed Configs: %v", configsJSON)
 
 	return nil
 
