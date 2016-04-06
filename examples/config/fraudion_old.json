@@ -1,0 +1,153 @@
+{
+
+  // Simple Fraud Detection & Notification System for Asterisk/FreeSwitch
+  // Configuration File
+
+  "General": {
+    "MonitoredSoftware": "*ast_alone_1.8",        // [Mandatory] ast_alone_<version>: Asterisk from <version> source, ast_el_<version>: asterisk from Elastix <version>, fs_<version>: Freeswitch <version>
+    "CDRsSource": "*db_mysql",                    // [Mandatory] db_mysql: Database MySQL. TODO (v2) json: Json, csv: CSVs
+    "DefaultTriggerCheckPeriod": "10m",           // [Mandatory] Can be overriden in Trigger configuration
+    "DefaultHitThreshold": 5,
+    "DefaultMinimumDestinationNumberLength": 3,   // [Mandatory] Only consider CDRs with destination number with len > this number (this is to exclude internal calls that normally have 3 to 5 digits destination numbers)
+    "DefaultActionChainSleepPeriod": "5m",        // [Mandatory] Waits this time before checking if Chain run account is still > 0 the Action Chain for a match of some Trigger
+    "DefaultActionChainRunCount": 3               // [Mandatory] Count for the Reprocessing of the Action Chains
+  },
+
+  "Triggers": {
+    "SimultaneousCalls": {
+      "Enabled": true,                // [Optional] Enables/Disables the Trigger. If omitted defaults to "true", to disable either omit the Trigger section or add enabled: false
+      "CheckPeriod": "5m",            // [Optional] Specifies in which time interval the Trigger runs. If omitted defaults to "DefaultTriggerCheckPeriod"
+      "HitThreshold": 5,
+      "ActionChainName": "*default",
+      "MinimumNumberLength": 5,
+    },
+    "DangerousDestinations": {
+      "Enabled": true,                // See description on the SimultaneousCalls sub section
+      "CheckPeriod": "1m",
+      "HitThreshold": 5,
+      "MinimumNumberLength": 5,
+      "ActionChainName": "*default",
+      //"ConsiderCDRsFromLast": "5d",
+      "PrefixList": ["351", "244", "91", "53", "256", "48"], // [Mandatory, can be empty but duuh!] The trigger searches for numbers containing the prefixes in this list, according to MatchRegex, on the softswitch "dial string" (e.g. SIP/trunk1/354123123123,300,w in Asterisk/Elastix (lastapp == Dial & lastdata field))
+      //"MatchRegex": "/([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}", // [Future] The trigger will use this as explained above, you use __prefix__ to specify where the prefix values should go
+      //"IgnoreRegex": "[0-9]{9}", // [Future] This will ignore numbers with 9 digits (e.g. Portugal national numbering format) + Ignores numbers with length < MinimumNumberLength, so this should eliminate national special services numbers (e.g. 911, etc)
+    },
+    "ExpectedDestinations": {
+      "Enabled": true,                // See description on the SimultaneousCalls sub section
+      "CheckPeriod": "5m",
+      "HitThreshold": 5,
+      "MinimumNumberLength": 10,
+      "ActionChainName": "*default",
+      //"ConsiderCDRsFromLast": "5d",
+      "PrefixList": ["244"]
+    },
+    "SmallDurationCalls": {
+      "Enabled": true,                // See description on the SimultaneousCalls sub section
+      "CheckPeriod": "5m",
+      "HitThreshold": 5,
+      "MinimumNumberLength": 5,
+      "ActionChainName": "*default",
+      //"ConsiderCDRsFromLast": "5d",
+      "DurationThreshold": "5s"
+    }
+  },
+
+  "Actions": {
+    "Email": {
+      "Enabled": true, // [Optional] If you omit this we consider it "disabled"
+      "Method": "*gmail",
+      "Username": "",
+      "Password": ""
+    },
+    "HTTP": {
+      "Enabled": true // [Optional] If you omit this we consider it "disabled"
+    },
+    "Call": {
+      "Enabled": true, // [Optional] If you omit this we consider it "disabled"
+      "OriginateMethod": "*ami",
+      //"OriginateParameters" [Future]
+    },
+    "LocalCommands": { // You can define your own command actions by giving them a name and a string that will be executed on the system! "*local_command x N"
+      "Enabled": true // [Optional] If you omit this we consider it "disabled"
+    }
+  },
+
+  "ActionChains": {
+    "List": {
+      "Default": [
+        {
+          "Action": "*email",
+          "Contacts": ["ContactName", "ContactName2"]
+        },
+        {
+          "Action": "*call",
+          "Contacts": ["ContactName"]
+        },
+        {
+          "Action": "*localcommand",
+          "Contacts": ["KillAmportal"]
+        }
+        // etc...
+      ],
+      "One": [
+        {
+          "Action": "*call",
+          "Contacts": ["ContactName", "ContactName2"]
+        },
+        // etc...
+      ]
+    }
+  },
+
+  "Contacts": {
+    "List": {
+      "ContactName": {
+        "forActions": ["*action_name", "*action_name"], // [Mandatory] The fields bellow used will depend on the values on this array.
+        "phoneNumber": "",
+        "emailAddress": "",
+        "message": "",
+        "HTTPURL": "",
+        "HTTPMethod": "",
+        "HTTPParameters": {
+          "http_post_parameters_1_k": "http_post_parameters_1_v",
+          "http_post_parameters_2_k": "http_post_parameters_2_v"
+          // etc...
+        },
+        "CommandName": "",
+      	"CommandArguments": ""
+      },
+      "ContactName2": {
+        "forActions": ["*action_name", "*action_name"], // [Mandatory] The fields bellow used will depend on the values on this array.
+        "phoneNumber": "",
+        "emailAddress": "",
+        "message": "",
+        "HTTPURL": "",
+        "HTTPMethod": "",
+        "HTTPParameters": {
+          "http_post_parameters_1_k": "http_post_parameters_1_v",
+          "http_post_parameters_2_k": "http_post_parameters_2_v"
+          // etc...
+        },
+        "CommandName": "",
+      	"CommandArguments": ""
+      },
+      "KillAmportal": {
+        "forActions": ["*action_name", "*action_name"], // [Mandatory] The fields bellow used will depend on the values on this array.
+        "phoneNumber": "",
+        "emailAddress": "",
+        "message": "",
+        "HTTPURL": "",
+        "HTTPMethod": "",
+        "HTTPParameters": {
+          "http_post_parameters_1_k": "http_post_parameters_1_v",
+          "http_post_parameters_2_k": "http_post_parameters_2_v"
+          // etc...
+        },
+        "CommandName": "",
+      	"CommandArguments": ""
+      }
+      // etc...
+    }
+  }
+
+}
