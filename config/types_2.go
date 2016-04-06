@@ -124,7 +124,6 @@ type DataGroups2 struct {
 
 // DataGroup2 ...
 type DataGroup2 struct {
-	ForActions       []string          `json:"for_actions"` // TODO: Maybe this could serve to validate which of the fields bellow should be confirmed to exist
 	PhoneNumber      string            `json:"phone_number"`
 	EmailAddress     string            `json:"email_address"`
 	HTTPURL          string            `json:"http_url"`
