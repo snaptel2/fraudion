@@ -111,9 +111,9 @@ func main() {
 
 	// Launch Triggers!
 	fraudion.LogInfo.Println("Launching enabled triggers...")
-	/*if configs.Triggers.SimultaneousCalls.Enabled == true {
-		go triggers.SimultaneousCallsRun(configs, new(softswitches.Asterisk1_8))
-	}*/
+	if configs.Triggers.SimultaneousCalls.Enabled == true {
+		go triggers.SimultaneousCallsRun()
+	}
 	if configs.Triggers.DangerousDestinations.Enabled == true {
 		go triggers.DangerousDestinationsRun(db)
 	}

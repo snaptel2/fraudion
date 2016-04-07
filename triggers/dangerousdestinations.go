@@ -11,6 +11,7 @@ import (
 	"os/exec"
 
 	"github.com/SlyMarbo/gmail"
+
 	"github.com/andmar/fraudion/types"
 	"github.com/andmar/fraudion/utils"
 )
@@ -25,7 +26,7 @@ func DangerousDestinationsRun(db *sql.DB) {
 	configsTrigger := configs.Triggers.DangerousDestinations
 	stateTrigger := state.StateDangerousDestinations
 
-	types.Fraudion.LogInfo.Println("Starting Trigger, \"DangerousDestinations\"...")
+	fraudion.LogInfo.Println("Starting Trigger, \"DangerousDestinations\"...")
 
 	ticker := time.NewTicker(configsTrigger.ExecuteInterval)
 	for executionTime := range ticker.C {
