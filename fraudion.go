@@ -43,14 +43,20 @@ func main() {
 	configs := fraudion.Configs
 
 	fraudion.StartUpTime = time.Now()
-	os.Stdout.WriteString(fmt.Sprintf("Starting at %s\n", fraudion.StartUpTime))
+	os.Stdout.WriteString(fmt.Sprintf("Starting Fraudion at %s\n", fraudion.StartUpTime))
 	os.Stdout.WriteString("Parsing CLI flags...\n")
 	flag.Parse()
 
 	if *argCliLogFile != "stdout" {
 
 		var logFile *os.File
-		if _, err := os.Stat(*argCliLogFile); os.IsNotExist(err) {
+		logFile, err := os.OpenFile(*argCliLogFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			os.Stdout.WriteString(fmt.Sprintf("Can't start, there was a problem (%s) opening the Log file. :(\n", err))
+			os.Exit(1)
+		}
+
+		/*if _, err := os.Stat(*argCliLogFile); os.IsNotExist(err) {
 			logFile, err = os.Create(*argCliLogFile)
 			if err != nil {
 				os.Stdout.WriteString(fmt.Sprintf("Can't start, there was a problem (%s) creating the Log file. :(\n", err))
@@ -62,19 +68,21 @@ func main() {
 				os.Stdout.WriteString(fmt.Sprintf("Can't start, there was a problem (%s) opening the Log file. :(\n", err))
 				os.Exit(1)
 			}
-		}
+		}*/
 
-		os.Stdout.WriteString(fmt.Sprintf("Ouputting Log to \"%s\".\n", *argCliLogFile))
+		os.Stdout.WriteString(fmt.Sprintf("Ouputting Log to \"%s\"\n", *argCliLogFile))
 		fraudion.SetupLogging(logFile, logFile, logFile, logFile)
+		logFile.WriteString("\n")
 
 	} else {
 
-		os.Stdout.WriteString("Ouputting Log to \"STDOUT\".\n")
+		os.Stdout.WriteString("Ouputting Log to \"STDOUT\"\n")
 		types.Fraudion.SetupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+		os.Stdout.WriteString("\n")
 
 	}
 
-	fraudion.LogInfo.Printf("Starting at %s\n", fraudion.StartUpTime)
+	fraudion.LogInfo.Printf("Starting Log at %s\n", fraudion.StartUpTime)
 
 	configsJSON := new(types.FraudionConfigJSON)
 	err := config.ParseConfigsFromJSON(configsJSON, *argCliConfigDir)
