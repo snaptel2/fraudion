@@ -47,7 +47,8 @@ func main() {
 	os.Stdout.WriteString("Parsing CLI flags...\n")
 	flag.Parse()
 
-	/*
+	if *argCliLogFile != "stdout" {
+
 		var logFile *os.File
 		if _, err := os.Stat(*argCliLogFile); os.IsNotExist(err) {
 			logFile, err = os.Create(*argCliLogFile)
@@ -58,12 +59,20 @@ func main() {
 		} else {
 			logFile, err = os.Open(*argCliLogFile)
 			if err != nil {
-				os.Stdout.WriteString(fmt.Sprintf("Can't start, there was a problem ()%s) opening the Log file. :(\n", err))
+				os.Stdout.WriteString(fmt.Sprintf("Can't start, there was a problem (%s) opening the Log file. :(\n", err))
 				os.Exit(1)
 			}
-		}*/
-	//fraudion.SetupLogging(logFile, logFile, logFile, logFile)
-	types.Fraudion.SetupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+		}
+
+		os.Stdout.WriteString(fmt.Sprintf("Ouputting Log to \"%s\".\n", *argCliLogFile))
+		fraudion.SetupLogging(logFile, logFile, logFile, logFile)
+
+	} else {
+
+		os.Stdout.WriteString("Ouputting Log to \"STDOUT\".\n")
+		types.Fraudion.SetupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+
+	}
 
 	fraudion.LogInfo.Printf("Starting at %s\n", fraudion.StartUpTime)
 
