@@ -34,7 +34,7 @@ func DebugLogAndGetError(errorMessage string, getError bool) error {
 		return fmt.Errorf(errorMessage)
 	}
 
-	types.Globals.LogError.Printf("%s\n", errorMessage)
+	types.Fraudion.LogError.Printf("%s\n", errorMessage)
 
 	return nil
 

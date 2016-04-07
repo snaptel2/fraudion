@@ -15,6 +15,17 @@
 
   },
 
+	"cdrs_sources": {
+		"*db_mysql": {
+			"user_name": "root",
+			"user_password": "",
+			"database_name": "asteriskcdrdb",
+			"cdrs_table_name": "cdr",
+			"mysql_options": "allowOldPasswords=1"
+		}
+
+	},
+
   "triggers": {
 
     "simultaneous_calls": {
@@ -22,7 +33,9 @@
       "execute_interval": "5m",         // [Optional] Specifies in which time interval the Trigger runs. If omitted defaults to "DefaultTriggerCheckPeriod"
       "hit_threshold": 5,               // [Optional]
       "minimum_number_length": 5,       // [Optional]
-      "action_chain_name": "*default"   // [Optional] Specifies the name of the Action Chain that will be executed once this Trigger is "pulled". if ommited defaults to "*default"
+      "action_chain_name": "*default",   // [Optional] Specifies the name of the Action Chain that will be executed once this Trigger is "pulled". if ommited defaults to "*default"
+			"action_chain_holdoff_period": 0,
+			"action_chain_run_count": 0,
     },
     "dangerous_destinations": {
       "enabled": true,                                            // See description on the SimultaneousCalls sub section
@@ -30,18 +43,22 @@
       "hit_threshold": 5,
       "minimum_number_length": 5,
       "action_chain_name": "*default",                            // See description on the SimultaneousCalls sub section
-      "consider_cdrs_from_last": "5",
+			"action_chain_holdoff_period": 0,
+			"action_chain_run_count": 0,
+			"consider_cdrs_from_last": "5",
       "prefix_list": ["351", "244", "91", "53", "256", "48"],     // [Mandatory, can be empty but duuh!] The trigger searches for numbers containing the prefixes in this list, according to MatchRegex, on the softswitch "dial string" (e.g. SIP/trunk1/354123123123,300,w in Asterisk/Elastix (lastapp == Dial & lastdata field))
       "match_regex": "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}",   // [Future] The trigger will use this as explained above, you use __prefix__ to specify where the prefix values should go
       "ignore_regex": "^[0-9]{9}$"                                // [Future] This will ignore numbers with 9 digits (e.g. Portugal national numbering format) + Ignores numbers with length < MinimumNumberLength, so this should eliminate national special services numbers (e.g. 911, etc)
-    },
+		},
     "expected_destinations": {
       "enabled": true,                                            // See description on the SimultaneousCalls sub section
       "execute_interval": "5m",
       "hit_threshold": 5,
       "minimum_number_length": 10,
       "action_chain_name": "*default",
-      "consider_cdrs_from_last": "5d",
+			"action_chain_holdoff_period": 0,
+			"action_chain_run_count": 0,
+			"consider_cdrs_from_last": "5d",
       "prefix_list": ["244"],
       "match_regex": "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}",
       "ignore_regex": "^[0-9]{9}$"
@@ -52,7 +69,9 @@
       "hit_threshold": 5,
       "minimum_number_length": 5,
       "action_chain_name": "*default",
-      "consider_cdrs_from_last": "5d",
+			"action_chain_holdoff_period": 0,
+			"action_chain_run_count": 0,
+			"consider_cdrs_from_last": "5d",
       "duration_threshold": "5s"
     }
 

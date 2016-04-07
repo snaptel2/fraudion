@@ -6,18 +6,20 @@ import (
 	"time"
 )
 
-// Fraudion The "Type"
-type Fraudion struct {
+// FraudionGlobal The "Type"
+type FraudionGlobal struct {
 	StartUpTime time.Time
 	Debug       bool
 	LogTrace    *log.Logger
 	LogInfo     *log.Logger
 	LogWarning  *log.Logger
 	LogError    *log.Logger
+	Configs     *FraudionConfig
+	State       *FraudionState
 }
 
 // SetupLogging ...
-func (fraudion *Fraudion) SetupLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
+func (fraudion *FraudionGlobal) SetupLogging(traceHandle io.Writer, infoHandle io.Writer, warningHandle io.Writer, errorHandle io.Writer) {
 
 	fraudion.LogTrace = log.New(traceHandle, "FRAUDION TRACE: ", log.Ldate|log.Ltime|log.Lshortfile)
 	fraudion.LogInfo = log.New(infoHandle, "FRAUDION INFO: ", log.Ldate|log.Ltime|log.Lshortfile)
@@ -26,22 +28,38 @@ func (fraudion *Fraudion) SetupLogging(traceHandle io.Writer, infoHandle io.Writ
 
 }
 
-// Globals ...
-var Globals *Fraudion
+// SetupState ...
+func (fraudion *FraudionGlobal) SetupState() {
+	fraudion.State = new(FraudionState)
+}
+
+// SetupConfigs ...
+func (fraudion *FraudionGlobal) SetupConfigs() {
+	fraudion.Configs = new(FraudionConfig)
+}
+
+// Fraudion ...
+var Fraudion *FraudionGlobal
 
 // Types for Loaded Config
 
-// FraudionConfig2 ...
-type FraudionConfig2 struct {
-	General      General2
-	Triggers     Triggers2
-	Actions      Actions2
-	ActionChains ActionChains2
-	DataGroups   DataGroups2
+// FraudionConfig ...
+type FraudionConfig struct {
+	General      General
+	CDRsSources  interface{}
+	Triggers     Triggers
+	Actions      Actions
+	ActionChains ActionChains
+	DataGroups   DataGroups
 }
 
-// General2 ...
-type General2 struct {
+// FraudionState ...
+type FraudionState struct {
+	StateTriggers StateTriggers
+}
+
+// General ...
+type General struct {
 	MonitoredSoftware                     string
 	CDRsSource                            string
 	DefaultTriggerExecuteInterval         time.Duration
@@ -51,108 +69,137 @@ type General2 struct {
 	DefaultActionChainRunCount            uint32
 }
 
-// Triggers2 ...
-type Triggers2 struct {
-	SimultaneousCalls     triggerSimultaneousCalls2
-	DangerousDestinations triggerDangerousDestinations2
-	ExpectedDestinations  triggerExpectedDestinations2
-	SmallDurationCalls    triggerSmallCallDurations2
+// Triggers ...
+type Triggers struct {
+	SimultaneousCalls     triggerSimultaneousCalls
+	DangerousDestinations triggerDangerousDestinations
+	ExpectedDestinations  triggerExpectedDestinations
+	SmallDurationCalls    triggerSmallCallDurations
 }
 
-type triggerSimultaneousCalls2 struct {
-	Enabled                bool
-	ExecuteInterval        time.Duration
-	HitThreshold           uint32
-	MinimumNumberLength    uint32
-	ActionChainName        string
+// StateTriggers ...
+type StateTriggers struct {
+	StateSimultaneousCalls     stateSimultaneousCalls
+	StateDangerousDestinations stateDangerousDestinations
+	StateExpectedDestinations  stateExpectedDestinations
+	StateSmallDurationCalls    stateSmallCallDurations
+}
+
+type triggerSimultaneousCalls struct {
+	Enabled                  bool
+	ExecuteInterval          time.Duration
+	HitThreshold             uint32
+	MinimumNumberLength      uint32
+	ActionChainName          string
+	ActionChainHoldoffPeriod uint32
+	MaxActionChainRunCount   uint32
+}
+
+type stateSimultaneousCalls struct {
 	LastActionChainRunTime time.Time
 	ActionChainRunCount    uint32
 }
 
-type triggerDangerousDestinations2 struct {
-	Enabled                bool
-	ExecuteInterval        time.Duration
-	HitThreshold           uint32
-	MinimumNumberLength    uint32
-	ActionChainName        string
-	ConsiderCDRsFromLast   string
-	PrefixList             []string
-	MatchRegex             string
-	IgnoreRegex            string
+type triggerDangerousDestinations struct {
+	Enabled                  bool
+	ExecuteInterval          time.Duration
+	HitThreshold             uint32
+	MinimumNumberLength      uint32
+	ActionChainName          string
+	ActionChainHoldoffPeriod uint32
+	MaxActionChainRunCount   uint32
+	ConsiderCDRsFromLast     string
+	PrefixList               []string
+	MatchRegex               string
+	IgnoreRegex              string
+	LastActionChainRunTime   time.Time
+}
+
+type stateDangerousDestinations struct {
 	LastActionChainRunTime time.Time
 	ActionChainRunCount    uint32
 }
 
-type triggerExpectedDestinations2 struct {
-	Enabled                bool
-	ExecuteInterval        time.Duration
-	HitThreshold           uint32
-	MinimumNumberLength    uint32
-	ActionChainName        string
-	ConsiderCDRsFromLast   string
-	PrefixList             []string
-	MatchRegex             string
-	IgnoreRegex            string
+type triggerExpectedDestinations struct {
+	Enabled                  bool
+	ExecuteInterval          time.Duration
+	HitThreshold             uint32
+	MinimumNumberLength      uint32
+	ActionChainName          string
+	ActionChainHoldoffPeriod uint32
+	MaxActionChainRunCount   uint32
+	ConsiderCDRsFromLast     string
+	PrefixList               []string
+	MatchRegex               string
+	IgnoreRegex              string
+}
+
+type stateExpectedDestinations struct {
 	LastActionChainRunTime time.Time
 	ActionChainRunCount    uint32
 }
 
-type triggerSmallCallDurations2 struct {
-	Enabled                bool
-	ExecuteInterval        time.Duration
-	HitThreshold           uint32
-	MinimumNumberLength    uint32
-	ActionChainName        string
-	ConsiderCDRsFromLast   string
-	DurationThreshold      time.Duration
+type triggerSmallCallDurations struct {
+	Enabled                  bool
+	ExecuteInterval          time.Duration
+	HitThreshold             uint32
+	MinimumNumberLength      uint32
+	ActionChainName          string
+	ActionChainHoldoffPeriod uint32
+	MaxActionChainRunCount   uint32
+	ConsiderCDRsFromLast     string
+	DurationThreshold        time.Duration
+}
+
+type stateSmallCallDurations struct {
 	LastActionChainRunTime time.Time
 	ActionChainRunCount    uint32
 }
 
-// Actions2 ...
-type Actions2 struct {
-	Email         actionEmail2
-	Call          actionCall2
-	HTTP          actionHTTP2
-	LocalCommands actionLocalCommands2
+// Actions ...
+type Actions struct {
+	Email         actionEmail
+	Call          actionCall
+	HTTP          actionHTTP
+	LocalCommands actionLocalCommands
 }
 
-type actionEmail2 struct {
+type actionEmail struct {
 	Enabled  bool
 	Username string
 	Password string
 	Message  string
 }
 
-type actionCall2 struct {
+type actionCall struct {
 	Enabled bool
 }
 
-type actionHTTP2 struct {
+type actionHTTP struct {
 	Enabled bool
 }
 
-type actionLocalCommands2 struct {
+type actionLocalCommands struct {
 	Enabled bool
 }
 
-// ActionChains2 ...
-type ActionChains2 struct {
-	List map[string][]actionChainAction2
+// ActionChains ...
+type ActionChains struct {
+	List map[string][]actionChainAction
 }
 
-type actionChainAction2 struct {
+type actionChainAction struct {
 	ActionName     string   `json:"action"`
 	DataGroupNames []string `json:"data_groups"`
 }
 
-// DataGroups2 ...
-type DataGroups2 struct {
-	List map[string]DataGroup2
+// DataGroups ...
+type DataGroups struct {
+	List map[string]DataGroup
 }
 
-// DataGroup2 ...
-type DataGroup2 struct {
+// DataGroup ...
+type DataGroup struct {
 	PhoneNumber      string            `json:"phone_number"`
 	EmailAddress     string            `json:"email_address"`
 	HTTPURL          string            `json:"http_url"`
@@ -164,17 +211,18 @@ type DataGroup2 struct {
 
 // Types for JSON Config Unmarshaling
 
-// FraudionConfigJSON2 ...
-type FraudionConfigJSON2 struct {
-	General      GeneralJSON2
-	Triggers     TriggersJSON2
-	Actions      ActionsJSON2
-	ActionChains ActionChainsJSON2
-	DataGroups   DataGroupsJSON2
+// FraudionConfigJSON ...
+type FraudionConfigJSON struct {
+	General      GeneralJSON
+	CDRsSources  interface{} `json:"cdrs_source"`
+	Triggers     TriggersJSON
+	Actions      ActionsJSON
+	ActionChains ActionChainsJSON
+	DataGroups   DataGroupsJSON
 }
 
-// GeneralJSON2 ...
-type GeneralJSON2 struct {
+// GeneralJSON ...
+type GeneralJSON struct {
 	MonitoredSoftware                     string `json:"monitored_software"`
 	CDRsSource                            string `json:"cdrs_source"`
 	DefaultTriggerExecuteInterval         string `json:"default_trigger_execute_interval"`
@@ -184,89 +232,97 @@ type GeneralJSON2 struct {
 	DefaultActionChainRunCount            uint32 `json:"default_action_chain_run_count"`
 }
 
-// TriggersJSON2 ...
-type TriggersJSON2 struct {
-	SimultaneousCalls     triggerSimultaneousCallsJSON2     `json:"simultaneous_calls"`
-	DangerousDestinations triggerDangerousDestinationsJSON2 `json:"dangerous_destinations"`
-	ExpectedDestinations  triggerExpectedDestinationsJSON2  `json:"expected_destinations"`
-	SmallDurationCalls    triggerSmallCallDurationsJSON2    `json:"small_duration_calls"`
+// TriggersJSON ...
+type TriggersJSON struct {
+	SimultaneousCalls     triggerSimultaneousCallsJSON     `json:"simultaneous_calls"`
+	DangerousDestinations triggerDangerousDestinationsJSON `json:"dangerous_destinations"`
+	ExpectedDestinations  triggerExpectedDestinationsJSON  `json:"expected_destinations"`
+	SmallDurationCalls    triggerSmallCallDurationsJSON    `json:"small_duration_calls"`
 }
 
-type triggerSimultaneousCallsJSON2 struct {
-	Enabled             bool   `json:"enabled"`
-	ExecuteInterval     string `json:"execute_interval"`
-	HitThreshold        uint32 `json:"hit_threshold"`
-	MinimumNumberLength uint32 `json:"minimum_number_length"`
-	ActionChainName     string `json:"action_chain_name"`
+type triggerSimultaneousCallsJSON struct {
+	Enabled                  bool   `json:"enabled"`
+	ExecuteInterval          string `json:"execute_interval"`
+	HitThreshold             uint32 `json:"hit_threshold"`
+	MinimumNumberLength      uint32 `json:"minimum_number_length"`
+	ActionChainName          string `json:"action_chain_name"`
+	ActionChainHoldoffPeriod uint32 `json:"action_chain_holdoff_period"`
+	MaxActionChainRunCount   uint32 `json:"action_chain_run_count"`
 }
 
-type triggerDangerousDestinationsJSON2 struct {
-	Enabled              bool     `json:"enabled"`
-	ExecuteInterval      string   `json:"execute_interval"`
-	HitThreshold         uint32   `json:"hit_threshold"`
-	MinimumNumberLength  uint32   `json:"minimum_number_length"`
-	ActionChainName      string   `json:"action_chain_name"`
-	ConsiderCDRsFromLast string   `json:"consider_cdrs_from_last"`
-	PrefixList           []string `json:"prefix_list"`
-	MatchRegex           string   `json:"match_regex"`
-	IgnoreRegex          string   `json:"ignore_regex"`
+type triggerDangerousDestinationsJSON struct {
+	Enabled                  bool     `json:"enabled"`
+	ExecuteInterval          string   `json:"execute_interval"`
+	HitThreshold             uint32   `json:"hit_threshold"`
+	MinimumNumberLength      uint32   `json:"minimum_number_length"`
+	ActionChainName          string   `json:"action_chain_name"`
+	ActionChainHoldoffPeriod uint32   `json:"action_chain_holdoff_period"`
+	MaxActionChainRunCount   uint32   `json:"action_chain_run_count"`
+	ConsiderCDRsFromLast     string   `json:"consider_cdrs_from_last"`
+	PrefixList               []string `json:"prefix_list"`
+	MatchRegex               string   `json:"match_regex"`
+	IgnoreRegex              string   `json:"ignore_regex"`
 }
 
-type triggerExpectedDestinationsJSON2 struct {
-	Enabled              bool     `json:"enabled"`
-	ExecuteInterval      string   `json:"execute_interval"`
-	HitThreshold         uint32   `json:"hit_threshold"`
-	MinimumNumberLength  uint32   `json:"minimum_number_length"`
-	ActionChainName      string   `json:"action_chain_name"`
-	ConsiderCDRsFromLast string   `json:"consider_cdrs_from_last"`
-	PrefixList           []string `json:"prefix_list"`
-	MatchRegex           string   `json:"match_regex"`
-	IgnoreRegex          string   `json:"ignore_regex"`
+type triggerExpectedDestinationsJSON struct {
+	Enabled                  bool     `json:"enabled"`
+	ExecuteInterval          string   `json:"execute_interval"`
+	HitThreshold             uint32   `json:"hit_threshold"`
+	MinimumNumberLength      uint32   `json:"minimum_number_length"`
+	ActionChainName          string   `json:"action_chain_name"`
+	ActionChainHoldoffPeriod uint32   `json:"action_chain_holdoff_period"`
+	MaxActionChainRunCount   uint32   `json:"action_chain_run_count"`
+	ConsiderCDRsFromLast     string   `json:"consider_cdrs_from_last"`
+	PrefixList               []string `json:"prefix_list"`
+	MatchRegex               string   `json:"match_regex"`
+	IgnoreRegex              string   `json:"ignore_regex"`
 }
 
-type triggerSmallCallDurationsJSON2 struct {
-	Enabled              bool   `json:"enabled"`
-	ExecuteInterval      string `json:"execute_interval"`
-	HitThreshold         uint32 `json:"hit_threshold"`
-	MinimumNumberLength  uint32 `json:"minimum_number_length"`
-	ActionChainName      string `json:"action_chain_name"`
-	ConsiderCDRsFromLast string `json:"consider_cdrs_from_last"`
-	DurationThreshold    string `json:"duration_threshold"`
+type triggerSmallCallDurationsJSON struct {
+	Enabled                  bool   `json:"enabled"`
+	ExecuteInterval          string `json:"execute_interval"`
+	HitThreshold             uint32 `json:"hit_threshold"`
+	MinimumNumberLength      uint32 `json:"minimum_number_length"`
+	ActionChainName          string `json:"action_chain_name"`
+	ActionChainHoldoffPeriod uint32 `json:"action_chain_holdoff_period"`
+	MaxActionChainRunCount   uint32 `json:"action_chain_run_count"`
+	ConsiderCDRsFromLast     string `json:"consider_cdrs_from_last"`
+	DurationThreshold        string `json:"duration_threshold"`
 }
 
-// ActionsJSON2 ...
-type ActionsJSON2 struct {
-	Email         actionEmailJSON2         `json:"email"`
-	Call          actionCallJSON2          `json:"call"`
-	HTTP          actionHTTPJSON2          `json:"http"`
-	LocalCommands actionLocalCommandsJSON2 `json:"local_commands"`
+// ActionsJSON ...
+type ActionsJSON struct {
+	Email         actionEmailJSON         `json:"email"`
+	Call          actionCallJSON          `json:"call"`
+	HTTP          actionHTTPJSON          `json:"http"`
+	LocalCommands actionLocalCommandsJSON `json:"local_commands"`
 }
 
-type actionEmailJSON2 struct {
+type actionEmailJSON struct {
 	Enabled  bool   `json:"enabled"`
 	Username string `json:"gmail_username"`
 	Password string `json:"gmail_password"`
 	Message  string `json:"message"`
 }
 
-type actionCallJSON2 struct {
+type actionCallJSON struct {
 	Enabled bool `json:"enabled"`
 }
 
-type actionHTTPJSON2 struct {
+type actionHTTPJSON struct {
 	Enabled bool `json:"enabled"`
 }
 
-type actionLocalCommandsJSON2 struct {
+type actionLocalCommandsJSON struct {
 	Enabled bool `json:"enabled"`
 }
 
-// ActionChainsJSON2 ...
-type ActionChainsJSON2 struct {
-	List map[string][]actionChainAction2 `json:"list"`
+// ActionChainsJSON ...
+type ActionChainsJSON struct {
+	List map[string][]actionChainAction `json:"list"`
 }
 
-// DataGroupsJSON2 ...
-type DataGroupsJSON2 struct {
-	List map[string]DataGroup2 `json:"list"`
+// DataGroupsJSON ...
+type DataGroupsJSON struct {
+	List map[string]DataGroup `json:"list"`
 }

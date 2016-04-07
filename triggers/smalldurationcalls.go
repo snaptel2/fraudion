@@ -10,7 +10,7 @@ import (
 )
 
 // SmallDurationCallsRun ...
-func SmallDurationCallsRun(configs *types.FraudionConfig2, db *sql.DB) {
+func SmallDurationCallsRun(configs *types.FraudionConfig, db *sql.DB) {
 
 	fmt.Println("Starting Trigger, \"SmallDurationCalls\"")
 

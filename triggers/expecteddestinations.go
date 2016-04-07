@@ -10,7 +10,7 @@ import (
 )
 
 // ExpectedDestinationsRun ...
-func ExpectedDestinationsRun(configs *types.FraudionConfig2, db *sql.DB) {
+func ExpectedDestinationsRun(configs *types.FraudionConfig, db *sql.DB) {
 
 	fmt.Println("Starting Trigger, \"ExpectedDestinations\"")
 

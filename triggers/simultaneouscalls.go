@@ -9,7 +9,7 @@ import (
 )
 
 // SimultaneousCallsRun ...
-func SimultaneousCallsRun(configs *types.FraudionConfig2, softswitch softswitches.Softswitch) {
+func SimultaneousCallsRun(configs *types.FraudionConfig, softswitch softswitches.Softswitch) {
 
 	fmt.Println("Starting Trigger, \"SimultaneousCalls\"")
 

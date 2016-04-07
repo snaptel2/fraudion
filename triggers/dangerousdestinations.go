@@ -16,16 +16,21 @@ import (
 )
 
 // DangerousDestinationsRun ...
-func DangerousDestinationsRun(configs *types.FraudionConfig2, db *sql.DB) {
+func DangerousDestinationsRun(db *sql.DB) {
 
-	types.Globals.LogInfo.Println("Starting Trigger, \"DangerousDestinations\"...")
+	fraudion := types.Fraudion
+	configs := fraudion.Configs
+	state := fraudion.State.StateTriggers
 
 	configsTrigger := configs.Triggers.DangerousDestinations
+	stateTrigger := state.StateDangerousDestinations
+
+	types.Fraudion.LogInfo.Println("Starting Trigger, \"DangerousDestinations\"...")
 
 	ticker := time.NewTicker(configsTrigger.ExecuteInterval)
 	for executionTime := range ticker.C {
 
-		types.Globals.LogInfo.Println("DangerousDestinations Trigger executed at", executionTime)
+		types.Fraudion.LogInfo.Println("DangerousDestinations Trigger executed at", executionTime)
 
 		// TODO: db.Open() does not "open" a connection just returns a "pointer". db.Ping() is a way to see if the server is available. Should we try to find a way to close the connection between "ticks"?
 		err := db.Ping()
@@ -67,7 +72,7 @@ func DangerousDestinationsRun(configs *types.FraudionConfig2, db *sql.DB) {
 			if err != nil {
 				utils.DebugLogAndGetError(fmt.Sprintf("Something (%s) happened while trying to parse \"stringGuardTime\"", err.Error()), false)
 			}
-			guardTime := types.Globals.StartUpTime.Add(-guardDuration)
+			guardTime := types.Fraudion.StartUpTime.Add(-guardDuration)
 			durationSinceGuardTime := time.Now().Sub(guardTime)
 
 			// TODO: From here on what is done is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
@@ -187,17 +192,17 @@ func DangerousDestinationsRun(configs *types.FraudionConfig2, db *sql.DB) {
 
 				actionChainGuardTime := configsTrigger.LastActionChainRunTime.Add(configs.General.DefaultActionChainHoldoffPeriod)
 
-				if runActionChain && actionChainGuardTime.Before(time.Now()) /*&& configsTrigger.ActionChainRunCount > 0*/ {
+				if runActionChain && actionChainGuardTime.Before(time.Now()) && stateTrigger.ActionChainRunCount > 0 {
 
-					configsTrigger.ActionChainRunCount = configsTrigger.ActionChainRunCount - 1
+					stateTrigger.ActionChainRunCount = stateTrigger.ActionChainRunCount - 1
 
 					actionChainName := configsTrigger.ActionChainName
 					if actionChainName == "" {
 						actionChainName = "*default"
 					}
 
-					types.Globals.LogInfo.Println("Running action chain: ", actionChainName)
-					configsTrigger.LastActionChainRunTime = time.Now()
+					types.Fraudion.LogInfo.Println("Running action chain: ", actionChainName)
+					stateTrigger.LastActionChainRunTime = time.Now()
 
 					actionChain := configs.ActionChains.List[actionChainName]
 					dataGroups := configs.DataGroups.List
@@ -247,10 +252,6 @@ func DangerousDestinationsRun(configs *types.FraudionConfig2, db *sql.DB) {
 						}
 
 					}
-
-				} else {
-
-					configsTrigger.ActionChainRunCount = configs.General.DefaultActionChainRunCount
 
 				}
 
