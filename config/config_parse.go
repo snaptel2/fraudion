@@ -56,7 +56,7 @@ func ParseConfigsFromJSON(configsJSON *types.FraudionConfigJSON, configDir strin
 	}
 
 	configsJSON.General = *configGeneralJSON
-	types.Fraudion.LogInfo.Println("General:", configGeneralJSON)
+	//types.Fraudion.LogInfo.Println("General:", configGeneralJSON)
 
 	// ** CDRsSources Section
 	sectionName = "cdrs_sources"
@@ -73,7 +73,7 @@ func ParseConfigsFromJSON(configsJSON *types.FraudionConfigJSON, configDir strin
 	}
 
 	configsJSON.CDRsSources = configCDRsSourcesJSON
-	types.Fraudion.LogInfo.Println("CDRsSources:", *configCDRsSourcesJSON)
+	//types.Fraudion.LogInfo.Println("CDRsSources:", *configCDRsSourcesJSON)
 
 	// ** Triggers Section
 	sectionName = "triggers"
@@ -90,7 +90,7 @@ func ParseConfigsFromJSON(configsJSON *types.FraudionConfigJSON, configDir strin
 	}
 
 	configsJSON.Triggers = *configTriggersJSON
-	types.Fraudion.LogInfo.Println("Triggers:", configTriggersJSON)
+	//types.Fraudion.LogInfo.Println("Triggers:", configTriggersJSON)
 
 	// ** Actions Section
 	sectionName = "actions"
@@ -107,7 +107,7 @@ func ParseConfigsFromJSON(configsJSON *types.FraudionConfigJSON, configDir strin
 	}
 
 	configsJSON.Actions = *configActionsJSON
-	types.Fraudion.LogInfo.Println("Actions:", configActionsJSON)
+	//types.Fraudion.LogInfo.Println("Actions:", configActionsJSON)
 
 	// ** Actions Chains Section
 	sectionName = "action_chains"
@@ -124,7 +124,7 @@ func ParseConfigsFromJSON(configsJSON *types.FraudionConfigJSON, configDir strin
 	}
 
 	configsJSON.ActionChains = *configActionChainsJSON
-	types.Fraudion.LogInfo.Println("Action Chains:", configActionChainsJSON)
+	//types.Fraudion.LogInfo.Println("Action Chains:", configActionChainsJSON)
 
 	// ** Data Groups Section
 	sectionName = "data_groups"
@@ -141,7 +141,7 @@ func ParseConfigsFromJSON(configsJSON *types.FraudionConfigJSON, configDir strin
 	}
 
 	configsJSON.DataGroups = *configDataGroupsJSON
-	types.Fraudion.LogInfo.Println("Data Groups:", configDataGroupsJSON)
+	//ypes.Fraudion.LogInfo.Println("Data Groups:", configDataGroupsJSON)
 
 	types.Fraudion.LogInfo.Printf("Parsed Configs: %v", configsJSON)
 

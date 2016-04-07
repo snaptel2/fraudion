@@ -24,9 +24,7 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 	fraudion := types.Fraudion
 	configs := fraudion.Configs
 
-	fmt.Println(configs)
-
-	types.Fraudion.LogInfo.Println("Validating and Loading configurations...")
+	fraudion.LogInfo.Println("Validating and Loading configurations...")
 
 	// ** General Section
 
@@ -210,7 +208,7 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 	// ** DataGroups Section
 	configs.DataGroups.List = configsJSON.DataGroups.List
 
-	types.Fraudion.LogInfo.Printf("Loaded Configs: %v", configs)
+	fraudion.LogInfo.Printf("Loaded Configs: %v", configs)
 
 	return nil
 

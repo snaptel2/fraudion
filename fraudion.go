@@ -24,17 +24,16 @@ const (
 
 // Defines expected CLI flags
 var (
-	argCliLogFile   = flag.String("log", constDefaultLogFile, "<help message for 'log'>")
-	argCliConfigDir = flag.String("configdir", constDefaultConfigDir, "<help message for 'configdir'>")
+	argCliLogFile   = flag.String("logto", constDefaultLogFile, "<help message for 'log'>")
+	argCliConfigDir = flag.String("configin", constDefaultConfigDir, "<help message for 'configdir'>")
 	argCliDBPass    = flag.String("dbpass", "", "<help message for 'dbpass'>")
 )
 
 func init() {
 	types.Fraudion = new(types.FraudionGlobal)
-	types.Fraudion.Debug = true
-	types.Fraudion.SetupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 	types.Fraudion.SetupConfigs()
 	types.Fraudion.SetupState()
+	types.Fraudion.Debug = true
 }
 
 // Starts here!
@@ -44,10 +43,29 @@ func main() {
 	configs := fraudion.Configs
 
 	fraudion.StartUpTime = time.Now()
-	fraudion.LogInfo.Printf("Starting at %s\n", fraudion.StartUpTime)
-
-	fraudion.LogInfo.Println("Parsing CLI flags...")
+	os.Stdout.WriteString(fmt.Sprintf("Starting at %s\n", fraudion.StartUpTime))
+	os.Stdout.WriteString("Parsing CLI flags...\n")
 	flag.Parse()
+
+	/*
+		var logFile *os.File
+		if _, err := os.Stat(*argCliLogFile); os.IsNotExist(err) {
+			logFile, err = os.Create(*argCliLogFile)
+			if err != nil {
+				os.Stdout.WriteString(fmt.Sprintf("Can't start, there was a problem (%s) creating the Log file. :(\n", err))
+				os.Exit(1)
+			}
+		} else {
+			logFile, err = os.Open(*argCliLogFile)
+			if err != nil {
+				os.Stdout.WriteString(fmt.Sprintf("Can't start, there was a problem ()%s) opening the Log file. :(\n", err))
+				os.Exit(1)
+			}
+		}*/
+	//fraudion.SetupLogging(logFile, logFile, logFile, logFile)
+	types.Fraudion.SetupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
+
+	fraudion.LogInfo.Printf("Starting at %s\n", fraudion.StartUpTime)
 
 	configsJSON := new(types.FraudionConfigJSON)
 	err := config.ParseConfigsFromJSON(configsJSON, *argCliConfigDir)
@@ -60,11 +78,9 @@ func main() {
 		fraudion.LogError.Fatalf("There was an error (%s) validating/loading the Fraudion configuration\n", err)
 	}
 
-	fraudion.LogInfo.Println("Connecting to the CDRs Database...")
-	// TODO: This is here only for testing purposes, maybe this will move to the Triggers code, but the information must be global, maybe come from config file
-	// TODO: This database connection method is Elastix2.3 specific, where the tests were made, so later we'll have to add some conditions to check what is the configured softswitch
 	var db *sql.DB
 	if configs.Triggers.DangerousDestinations.Enabled == true || configs.Triggers.ExpectedDestinations.Enabled == true || configs.Triggers.SmallDurationCalls.Enabled == true {
+		fraudion.LogInfo.Println("Connecting to the CDRs Database...")
 		var dbstring string
 		if *argCliDBPass == "" {
 			dbstring = fmt.Sprintf("root:@tcp(localhost:3306)/asteriskcdrdb?allowOldPasswords=1")
