@@ -66,6 +66,7 @@ type triggerSimultaneousCalls2 struct {
 	MinimumNumberLength    uint32
 	ActionChainName        string
 	LastActionChainRunTime time.Time
+	ActionChainRunCount    uint32
 }
 
 type triggerDangerousDestinations2 struct {
@@ -79,6 +80,7 @@ type triggerDangerousDestinations2 struct {
 	MatchRegex             string
 	IgnoreRegex            string
 	LastActionChainRunTime time.Time
+	ActionChainRunCount    uint32
 }
 
 type triggerExpectedDestinations2 struct {
@@ -92,6 +94,7 @@ type triggerExpectedDestinations2 struct {
 	MatchRegex             string
 	IgnoreRegex            string
 	LastActionChainRunTime time.Time
+	ActionChainRunCount    uint32
 }
 
 type triggerSmallCallDurations2 struct {
@@ -103,6 +106,7 @@ type triggerSmallCallDurations2 struct {
 	ConsiderCDRsFromLast   string
 	DurationThreshold      time.Duration
 	LastActionChainRunTime time.Time
+	ActionChainRunCount    uint32
 }
 
 // Actions2 ...
