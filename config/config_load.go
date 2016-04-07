@@ -40,18 +40,6 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 		configs.General.MonitoredSoftware = configsJSON.General.MonitoredSoftware
 	}
 
-	// * CDRsSource
-	if configsJSON.General.CDRsSource == "" {
-		return utils.DebugLogAndGetError(fmt.Sprintf("\"cdrs_source\" value in section \"general\" missing OR is empty."), true)
-	}
-	found = utils.StringInStringsSlice(configsJSON.General.CDRsSource, constSupportedCDRSources2)
-	if !found {
-		return utils.DebugLogAndGetError(fmt.Sprintf("\"cdrs_source\" value in section \"general\" must be one of %s", constSupportedCDRSources2), true)
-	}
-	if !validateOnly {
-		configs.General.CDRsSource = configsJSON.General.CDRsSource
-	}
-
 	// * DefaultTriggerExecuteInterval
 	if configsJSON.General.DefaultTriggerExecuteInterval == "" {
 		return utils.DebugLogAndGetError(fmt.Sprintf("\"default_trigger_execute_interval\" value in section \"general\" missing OR is empty."), true)
@@ -115,6 +103,11 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 	}
 
 	// TODO: From this point the validateOnly flag is not yet checked and used to do something
+
+	// ** CDRsSource Section
+	if !validateOnly {
+		configs.CDRsSources = configsJSON.CDRsSources
+	}
 
 	// ** Triggers Section
 

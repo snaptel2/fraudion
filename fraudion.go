@@ -84,8 +84,7 @@ func main() {
 
 	fraudion.LogInfo.Printf("Starting Log at %s\n", fraudion.StartUpTime)
 
-	configsJSON := new(types.FraudionConfigJSON)
-	err := config.ParseConfigsFromJSON(configsJSON, *argCliConfigDir)
+	configsJSON, err := config.ParseConfigsFromJSON(*argCliConfigDir)
 	if err != nil {
 		fraudion.LogError.Fatalf("There was an error (%s) parsing the Fraudion JSON configuration file\n", err)
 	}

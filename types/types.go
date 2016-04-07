@@ -214,7 +214,7 @@ type DataGroup struct {
 // FraudionConfigJSON ...
 type FraudionConfigJSON struct {
 	General      GeneralJSON
-	CDRsSources  interface{} `json:"cdrs_source"`
+	CDRsSources  map[string]map[string]string `json:"cdrs_sources"`
 	Triggers     TriggersJSON
 	Actions      ActionsJSON
 	ActionChains ActionChainsJSON
