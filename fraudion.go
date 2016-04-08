@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 	"time"
 
 	"database/sql"
@@ -47,7 +48,7 @@ func main() {
 	os.Stdout.WriteString("Parsing CLI flags...\n")
 	flag.Parse()
 
-	if *argCliLogFile != "stdout" {
+	if strings.ToLower(*argCliLogFile) != "stdout" {
 
 		var logFile *os.File
 		logFile, err := os.OpenFile(*argCliLogFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
@@ -70,13 +71,13 @@ func main() {
 			}
 		}*/
 
-		os.Stdout.WriteString(fmt.Sprintf("Ouputting Log to \"%s\"\n", *argCliLogFile))
+		os.Stdout.WriteString(fmt.Sprintf("Outputting Log to \"%s\"\n", *argCliLogFile))
 		fraudion.SetupLogging(logFile, logFile, logFile, logFile)
 		logFile.WriteString("\n")
 
 	} else {
 
-		os.Stdout.WriteString("Ouputting Log to \"STDOUT\"\n")
+		os.Stdout.WriteString("Outputting Log to \"STDOUT\"\n")
 		types.Fraudion.SetupLogging(ioutil.Discard, os.Stdout, os.Stdout, os.Stderr)
 		os.Stdout.WriteString("\n")
 

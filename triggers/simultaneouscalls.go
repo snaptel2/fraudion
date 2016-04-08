@@ -3,6 +3,7 @@ package triggers
 import (
 	"bufio"
 	"fmt"
+	"regexp"
 	"time"
 
 	"os/exec"
@@ -29,7 +30,7 @@ func SimultaneousCallsRun() {
 		fraudion.LogInfo.Println("SimultaneousCalls Trigger executed at", executionTime)
 
 		//command := exec.Command("asterisk", "-rx 'core show channels'")
-		command := exec.Command("git", "status")
+		command := exec.Command("asterisk", "-rx", "core show channels")
 		stdout, err := command.StdoutPipe()
 		if err != nil {
 			fmt.Println(err.Error())
@@ -39,19 +40,24 @@ func SimultaneousCallsRun() {
 			fmt.Println(err.Error())
 		}
 
-		// read command's stdout line by line
 		in := bufio.NewScanner(stdout)
 
 		for in.Scan() {
-			fmt.Println(in.Text()) // write each line to your log, or anything you need
+
+			searchActiveCallsNumber := regexp.MustCompile("^([0-9]+) active calls?$") // NOTE: Supported dial string format
+			isActiveCallsLine := searchActiveCallsNumber.MatchString(in.Text())
+
+			if isActiveCallsLine {
+
+				activeCalls := searchActiveCallsNumber.FindStringSubmatch(in.Text())[1]
+				fmt.Println("Active Calls:", activeCalls)
+
+			}
+
 		}
 		if err := in.Err(); err != nil {
-		}
-
-		/*err := command.Run()
-		if err != nil {
 			fmt.Println(err.Error())
-		}*/
+		}
 
 	}
 
