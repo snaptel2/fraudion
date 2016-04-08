@@ -112,7 +112,6 @@ type triggerDangerousDestinations struct {
 	PrefixList               []string
 	MatchRegex               string
 	IgnoreRegex              string
-	LastActionChainRunTime   time.Time
 }
 
 type stateDangerousDestinations struct {

@@ -191,7 +191,7 @@ func DangerousDestinationsRun(db *sql.DB) {
 					}
 				}
 
-				actionChainGuardTime := configsTrigger.LastActionChainRunTime.Add(configs.General.DefaultActionChainHoldoffPeriod)
+				actionChainGuardTime := stateTrigger.LastActionChainRunTime.Add(configs.General.DefaultActionChainHoldoffPeriod)
 
 				if runActionChain && actionChainGuardTime.Before(time.Now()) && stateTrigger.ActionChainRunCount > 0 {
 
