@@ -19,10 +19,10 @@ func SimultaneousCallsRun() {
 
 	fraudion := types.Fraudion
 	configs := fraudion.Configs
-	state := fraudion.State.StateTriggers
+	state := fraudion.State
 
 	configsTrigger := configs.Triggers.SimultaneousCalls
-	stateTrigger := state.StateDangerousDestinations
+	stateTrigger := state.StateTriggers.StateDangerousDestinations
 
 	fraudion.LogInfo.Println("Starting Trigger, \"SimultaneousCalls\"...")
 
@@ -53,13 +53,16 @@ func SimultaneousCallsRun() {
 			if isActiveCallsLine {
 
 				activeCalls := searchActiveCallsNumber.FindStringSubmatch(in.Text())[1]
-				fmt.Println("Active Calls:", activeCalls)
+				fraudion.LogInfo.Println("Active Calls:", activeCalls)
 
-				if activeCallsInt, err := strconv.Atoi(activeCalls); err != nil {
+				activeCallsInt, err := strconv.Atoi(activeCalls)
+				if err == nil {
 
 					runActionChain := false
 
 					if uint32(activeCallsInt) > configsTrigger.HitThreshold {
+
+						fraudion.LogInfo.Printf("Active Calls greater than threshold (%v)\n", configsTrigger.HitThreshold)
 
 						runActionChain = true
 
@@ -67,9 +70,16 @@ func SimultaneousCallsRun() {
 
 					actionChainGuardTime := stateTrigger.LastActionChainRunTime.Add(configs.General.DefaultActionChainHoldoffPeriod)
 
+					fraudion.LogInfo.Println("stateTrigger.LastActionChainRunTime:", stateTrigger.LastActionChainRunTime)
+					fraudion.LogInfo.Println("configs.General.DefaultActionChainHoldoffPeriod:", configs.General.DefaultActionChainHoldoffPeriod)
+					fraudion.LogInfo.Println("actionChainGuardTime:", actionChainGuardTime)
+					fraudion.LogInfo.Println("Now():", time.Now())
+					fraudion.LogInfo.Println("actionChainGuardTime < Now():", actionChainGuardTime.Before(time.Now()))
+					fraudion.LogInfo.Println("stateTrigger.ActionChainRunCount > 0:", stateTrigger.ActionChainRunCount > 0)
+
 					if runActionChain && actionChainGuardTime.Before(time.Now()) && stateTrigger.ActionChainRunCount > 0 {
 
-						stateTrigger.ActionChainRunCount = stateTrigger.ActionChainRunCount - 1
+						state.StateTriggers.StateSimultaneousCalls.ActionChainRunCount = stateTrigger.ActionChainRunCount - 1
 
 						actionChainName := configsTrigger.ActionChainName
 						if actionChainName == "" {

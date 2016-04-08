@@ -95,6 +95,8 @@ func main() {
 		fraudion.LogError.Fatalf("There was an error (%s) validating/loading the Fraudion configuration\n", err)
 	}
 
+	fmt.Println("State", types.Fraudion.State)
+
 	var db *sql.DB
 	if configs.Triggers.DangerousDestinations.Enabled == true || configs.Triggers.ExpectedDestinations.Enabled == true || configs.Triggers.SmallDurationCalls.Enabled == true {
 		fraudion.LogInfo.Println("Connecting to the CDRs Database...")

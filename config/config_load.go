@@ -23,6 +23,7 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 
 	fraudion := types.Fraudion
 	configs := fraudion.Configs
+	state := fraudion.State
 
 	fraudion.LogInfo.Println("Validating and Loading configurations...")
 
@@ -121,7 +122,7 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 		configs.Triggers.SimultaneousCalls.HitThreshold = configsJSON.Triggers.SimultaneousCalls.HitThreshold
 		configs.Triggers.SimultaneousCalls.MinimumNumberLength = configsJSON.Triggers.SimultaneousCalls.MinimumNumberLength
 		configs.Triggers.SimultaneousCalls.ActionChainName = configsJSON.Triggers.SimultaneousCalls.ActionChainName
-		//configs.Triggers.SimultaneousCalls.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
+		state.StateTriggers.StateSimultaneousCalls.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
 	}
 
 	// * DangerousDestinations
@@ -138,7 +139,7 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 		configs.Triggers.DangerousDestinations.ConsiderCDRsFromLast = configsJSON.Triggers.DangerousDestinations.ConsiderCDRsFromLast
 		configs.Triggers.DangerousDestinations.MatchRegex = configsJSON.Triggers.DangerousDestinations.MatchRegex
 		configs.Triggers.DangerousDestinations.IgnoreRegex = configsJSON.Triggers.DangerousDestinations.IgnoreRegex
-		//configs.Triggers.DangerousDestinations.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
+		state.StateTriggers.StateDangerousDestinations.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
 	}
 
 	// * ExpectedDestinations
@@ -155,7 +156,7 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 		configs.Triggers.ExpectedDestinations.ConsiderCDRsFromLast = configsJSON.Triggers.ExpectedDestinations.ConsiderCDRsFromLast
 		configs.Triggers.ExpectedDestinations.MatchRegex = configsJSON.Triggers.ExpectedDestinations.MatchRegex
 		configs.Triggers.ExpectedDestinations.IgnoreRegex = configsJSON.Triggers.ExpectedDestinations.IgnoreRegex
-		//configs.Triggers.ExpectedDestinations.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
+		state.StateTriggers.StateExpectedDestinations.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
 	}
 
 	// * SmallDurationCalls
@@ -173,7 +174,7 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 		if err != nil {
 			return utils.DebugLogAndGetError(fmt.Sprintf("Error message missing..."), true)
 		}
-		//configs.Triggers.SmallDurationCalls.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
+		state.StateTriggers.StateSmallDurationCalls.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
 	}
 
 	// ** Actions Section
@@ -202,6 +203,8 @@ func ValidateAndLoadConfigs(configsJSON *types.FraudionConfigJSON, validateOnly 
 	configs.DataGroups.List = configsJSON.DataGroups.List
 
 	fraudion.LogInfo.Printf("Loaded Configs: %v", configs)
+
+	fmt.Println("asdfklansdlkçfnaslkçdnflkasndflsnadflkandsf", state.StateTriggers.StateSimultaneousCalls)
 
 	return nil
 
