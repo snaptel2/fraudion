@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/andmar/fraudion/types"
+	"github.com/andmar/fraudion/logger"
 )
 
 // StringInStringsSlice ...
@@ -29,12 +29,11 @@ func StringKeyInMap(theKey string, theMap map[string]interface{}) bool {
 // DebugLogAndGetError ...
 func DebugLogAndGetError(errorMessage string, getError bool) error {
 
+	logger.Log.Write(logger.ConstLoggerLevelError, errorMessage, false)
+
 	if getError {
-		//return fmt.Errorf(strings.ToLower(customErrorMessage))
 		return fmt.Errorf(errorMessage)
 	}
-
-	types.Fraudion.LogError.Printf("%s\n", errorMessage)
 
 	return nil
 
