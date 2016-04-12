@@ -24,7 +24,7 @@ func Parse(configDir string) (*FraudionConfigJSON, error) {
 
 	configFileName := constDefaultJSONConfigFilename
 
-	logger.Log.Write(logger.ConstLoggerLevelInfo, fmt.Sprintf("Loading JSON from config file \"%s\"...\n", filepath.Join(configDir, configFileName)), false)
+	logger.Log.Write(logger.ConstLoggerLevelInfo, fmt.Sprintf("Parsing JSON from config file \"%s\"...", filepath.Join(configDir, configFileName)), false)
 
 	// ** JSON config file to map[string] to Raw JSON
 	JSONconfigFile, err := os.Open(filepath.Join(configDir, configFileName))

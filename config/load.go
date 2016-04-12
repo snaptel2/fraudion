@@ -23,6 +23,8 @@ func Load(configsJSON *FraudionConfigJSON) (*FraudionConfig, error) {
 
 	configs := new(FraudionConfig)
 
+	fmt.Println(configs)
+
 	logger.Log.Write(logger.ConstLoggerLevelInfo, "Validating and Loading configurations...", false)
 
 	// ** General Section
@@ -112,6 +114,7 @@ func Load(configsJSON *FraudionConfigJSON) (*FraudionConfig, error) {
 		configs.Triggers.SimultaneousCalls.HitThreshold = configsJSON.Triggers.SimultaneousCalls.HitThreshold
 		configs.Triggers.SimultaneousCalls.MinimumNumberLength = configsJSON.Triggers.SimultaneousCalls.MinimumNumberLength
 		configs.Triggers.SimultaneousCalls.ActionChainName = configsJSON.Triggers.SimultaneousCalls.ActionChainName
+		configs.Triggers.SimultaneousCalls.MaxActionChainRunCount = configsJSON.Triggers.SimultaneousCalls.MaxActionChainRunCount
 		//state.StateTriggers.StateSimultaneousCalls.ActionChainRunCount = configsJSON.General.DefaultActionChainRunCount
 	}
 
@@ -125,6 +128,7 @@ func Load(configsJSON *FraudionConfigJSON) (*FraudionConfig, error) {
 		configs.Triggers.DangerousDestinations.HitThreshold = configsJSON.Triggers.DangerousDestinations.HitThreshold
 		configs.Triggers.DangerousDestinations.MinimumNumberLength = configsJSON.Triggers.DangerousDestinations.MinimumNumberLength
 		configs.Triggers.DangerousDestinations.ActionChainName = configsJSON.Triggers.DangerousDestinations.ActionChainName
+		configs.Triggers.DangerousDestinations.MaxActionChainRunCount = configsJSON.Triggers.DangerousDestinations.MaxActionChainRunCount
 		configs.Triggers.DangerousDestinations.PrefixList = configsJSON.Triggers.DangerousDestinations.PrefixList
 		configs.Triggers.DangerousDestinations.ConsiderCDRsFromLast = configsJSON.Triggers.DangerousDestinations.ConsiderCDRsFromLast
 		configs.Triggers.DangerousDestinations.MatchRegex = configsJSON.Triggers.DangerousDestinations.MatchRegex
@@ -142,6 +146,7 @@ func Load(configsJSON *FraudionConfigJSON) (*FraudionConfig, error) {
 		configs.Triggers.ExpectedDestinations.HitThreshold = configsJSON.Triggers.ExpectedDestinations.HitThreshold
 		configs.Triggers.ExpectedDestinations.MinimumNumberLength = configsJSON.Triggers.ExpectedDestinations.MinimumNumberLength
 		configs.Triggers.ExpectedDestinations.ActionChainName = configsJSON.Triggers.ExpectedDestinations.ActionChainName
+		configs.Triggers.ExpectedDestinations.MaxActionChainRunCount = configsJSON.Triggers.ExpectedDestinations.MaxActionChainRunCount
 		configs.Triggers.ExpectedDestinations.PrefixList = configsJSON.Triggers.ExpectedDestinations.PrefixList
 		configs.Triggers.ExpectedDestinations.ConsiderCDRsFromLast = configsJSON.Triggers.ExpectedDestinations.ConsiderCDRsFromLast
 		configs.Triggers.ExpectedDestinations.MatchRegex = configsJSON.Triggers.ExpectedDestinations.MatchRegex
@@ -159,6 +164,7 @@ func Load(configsJSON *FraudionConfigJSON) (*FraudionConfig, error) {
 		configs.Triggers.SmallDurationCalls.HitThreshold = configsJSON.Triggers.SmallDurationCalls.HitThreshold
 		configs.Triggers.SmallDurationCalls.MinimumNumberLength = configsJSON.Triggers.SmallDurationCalls.MinimumNumberLength
 		configs.Triggers.SmallDurationCalls.ActionChainName = configsJSON.Triggers.SmallDurationCalls.ActionChainName
+		configs.Triggers.SmallDurationCalls.MaxActionChainRunCount = configsJSON.Triggers.SmallDurationCalls.MaxActionChainRunCount
 		configs.Triggers.SmallDurationCalls.ConsiderCDRsFromLast = configsJSON.Triggers.SmallDurationCalls.ConsiderCDRsFromLast
 		configs.Triggers.SmallDurationCalls.DurationThreshold, err = time.ParseDuration(configsJSON.Triggers.SmallDurationCalls.DurationThreshold)
 		if err != nil {
@@ -194,7 +200,7 @@ func Load(configsJSON *FraudionConfigJSON) (*FraudionConfig, error) {
 
 	logger.Log.Write(logger.ConstLoggerLevelInfo, fmt.Sprintf("Loaded Configs: %v", configs), false)
 
-	return nil, nil
+	return configs, nil
 
 }
 

@@ -36,8 +36,8 @@ func main() {
 	fraudion := fraudion.Global // NOTE: fraudion.Global (and it's pointers) is (are) initialized on fraudion's package init() function
 
 	fraudion.StartUpTime = time.Now()
-	os.Stdout.WriteString(fmt.Sprintf("Starting Fraudion at %s\n", fraudion.StartUpTime))
-	os.Stdout.WriteString("Parsing CLI flags...\n")
+	logger.Log.Write(logger.ConstLoggerLevelInfo, fmt.Sprintf(fmt.Sprintf("Starting Fraudion at %s", fraudion.StartUpTime)), false)
+	logger.Log.Write(logger.ConstLoggerLevelInfo, fmt.Sprintf("Parsing CLI flags..."), false)
 	flag.Parse()
 
 	if strings.ToLower(*argCliLogFile) != "" {
@@ -45,31 +45,55 @@ func main() {
 		var logFile *os.File
 		logFile, err := os.OpenFile(*argCliLogFile, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0600)
 		if err != nil {
-			os.Stdout.WriteString(fmt.Sprintf("Can't start, there was a problem (%s) opening the Log file. :(\n", err))
-			os.Exit(1)
+			logger.Log.Write(logger.ConstLoggerLevelError, fmt.Sprintf("Can't start, there was a problem (%s) opening the Log file. :(", err), true)
+			//os.Exit(1)
 		}
 
-		os.Stdout.WriteString(fmt.Sprintf("Outputting Log to \"%s\"\n", *argCliLogFile))
+		logger.Log.Write(logger.ConstLoggerLevelInfo, fmt.Sprintf("Outputting Log to \"%s\"", *argCliLogFile), false)
 		logger.Log.SetHandles(logFile, logFile, logFile, logFile) // NOTE: Overwrite the default handles on the Logger object.
-		logFile.WriteString("\n")
+		logger.Log.Write(logger.ConstLoggerLevelInfo, "\n", false)
 
 	}
 
-	logger.Log.Write(logger.ConstLoggerLevelInfo, fmt.Sprintf("Starting Fraudion Log at %s\n", fraudion.StartUpTime), false)
+	logger.Log.Write(logger.ConstLoggerLevelInfo, fmt.Sprintf("Starting Fraudion Log at %s", fraudion.StartUpTime), false)
 
 	configsJSON, err := config.Parse(*argCliConfigDir)
 	if err != nil {
-		logger.Log.Write(logger.ConstLoggerLevelError, fmt.Sprintf("There was an error (%s) parsing the Fraudion JSON configuration file\n", err), true)
+		logger.Log.Write(logger.ConstLoggerLevelError, fmt.Sprintf("There was an error (%s) parsing the Fraudion JSON configuration file", err), true)
 	}
 
 	configs, err := config.Load(configsJSON)
 	if err != nil {
-		logger.Log.Write(logger.ConstLoggerLevelError, fmt.Sprintf("There was an error (%s) validating/loading the Fraudion configuration\n", err), true)
+		logger.Log.Write(logger.ConstLoggerLevelError, fmt.Sprintf("There was an error (%s) validating/loading the Fraudion configuration", err), true)
+	}
+
+	if configs.Triggers.DangerousDestinations.MaxActionChainRunCount != 0 {
+		fraudion.State.Triggers.StateDangerousDestinations.ActionChainRunCount = configs.Triggers.DangerousDestinations.MaxActionChainRunCount
+	} else {
+		fraudion.State.Triggers.StateDangerousDestinations.ActionChainRunCount = configs.General.DefaultActionChainRunCount
+	}
+
+	if configs.Triggers.ExpectedDestinations.MaxActionChainRunCount != 0 {
+		fraudion.State.Triggers.StateExpectedDestinations.ActionChainRunCount = configs.Triggers.ExpectedDestinations.MaxActionChainRunCount
+	} else {
+		fraudion.State.Triggers.StateDangerousDestinations.ActionChainRunCount = configs.General.DefaultActionChainRunCount
+	}
+
+	if configs.Triggers.SimultaneousCalls.MaxActionChainRunCount != 0 {
+		fraudion.State.Triggers.StateSimultaneousCalls.ActionChainRunCount = configs.Triggers.SimultaneousCalls.MaxActionChainRunCount
+	} else {
+		fraudion.State.Triggers.StateDangerousDestinations.ActionChainRunCount = configs.General.DefaultActionChainRunCount
+	}
+
+	if configs.Triggers.SmallDurationCalls.MaxActionChainRunCount != 0 {
+		fraudion.State.Triggers.StateSmallDurationCalls.ActionChainRunCount = configs.Triggers.SmallDurationCalls.MaxActionChainRunCount
+	} else {
+		fraudion.State.Triggers.StateDangerousDestinations.ActionChainRunCount = configs.General.DefaultActionChainRunCount
 	}
 
 	// TODO: We'll call config.Validate() here in the future
 
-	fmt.Println(configs)
+	//fmt.Println(fraudion.State)
 
 	// TODO: This will maybe be done elsewhere!
 	/*var db *sql.DB

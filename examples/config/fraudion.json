@@ -15,18 +15,36 @@
 
   },
 
+	"monitored_softswitches": {
+
+		"RandomName": {
+			"brand": "asterisk",
+			"version": "*ast_1.8",
+			"cdrs_source": "*db_mysql",
+			"info_source": "*cli"
+		}
+
+	},
+
 	"cdrs_sources": {
 		"*db_mysql": {
-			"user_name": "root",
+			"user_name": "",
 			"user_password": "",
 			"database_name": "asteriskcdrdb",
-			"cdrs_table_name": "cdr",
+			"table_name": "cdr",
 			"mysql_options": "allowOldPasswords=1"
 		}
 
 	},
 
-  "triggers": {
+	"misc_info_sources": {
+		"*cli": {
+			"command": "asterisk -rx"
+		}
+
+	},
+
+  "monitors": {
 
     "simultaneous_calls": {
       "enabled": true,                  // [Optional] Enables/Disables the Trigger. If omitted defaults to "false".
@@ -37,6 +55,7 @@
 			"action_chain_holdoff_period": 0,
 			"action_chain_run_count": 0,
     },
+
     "dangerous_destinations": {
       "enabled": true,                                            // See description on the SimultaneousCalls sub section
       "execute_interval": "1m",                                   // See description on the SimultaneousCalls sub section
@@ -50,6 +69,7 @@
       "match_regex": "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}",   // [Future] The trigger will use this as explained above, you use __prefix__ to specify where the prefix values should go
       "ignore_regex": "^[0-9]{9}$"                                // [Future] This will ignore numbers with 9 digits (e.g. Portugal national numbering format) + Ignores numbers with length < MinimumNumberLength, so this should eliminate national special services numbers (e.g. 911, etc)
 		},
+
     "expected_destinations": {
       "enabled": true,                                            // See description on the SimultaneousCalls sub section
       "execute_interval": "5m",
@@ -63,6 +83,7 @@
       "match_regex": "([0-9]{0,8})?(0{2})?__prefix__[0-9]{5,}",
       "ignore_regex": "^[0-9]{9}$"
     },
+
     "small_duration_calls": {
       "enabled": true,                  // See description on the SimultaneousCalls sub section
       "execute_interval": "5m",
